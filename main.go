@@ -9,46 +9,46 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
 type Document struct {
 	XMLName xml.Name `xml:"document"`
-	Rows    []Row   `xml:"data>rows>row"`
+	Rows    []Row    `xml:"data>rows>row"`
 }
 
 type Row struct {
 	XMLName xml.Name `xml:"row" json:"-"`
 	Date    string   `xml:"coupondate,attr" json:"date"`
-	Value    string   `xml:"value,attr" json:"value"`
+	Value   string   `xml:"value,attr" json:"value"`
 }
 
 type Info struct {
-	Name string `json:"name"`
-	Date string `json:"info"`
+	Year  string  `json:"year"`
+	Month string  `json:"info"`
 	Value float64 `json:"value"`
-	YearSum float64 `json:"yearSum"`
 }
 
 type Bond struct {
-	Name string `json:"name"`
+	Name  string  `json:"name"`
 	Count float64 `json:"count"`
 }
 
 var data []Row
 var tmpl []Info
 var bonds = [8]Bond{
-	{"RU000A100YG1",10},
-	{"RU000A100LV7",5},
-	{"RU000A100YK3",1},
-	{"RU000A100YG1",1},
-	{"RU000A0ZYU39",1},
-	{"RU000A0ZYL22",1},
-	{"RU000A103DT2",1},
-	{"SU26229RMFS3",1},
+	{"RU000A100YG1", 10},
+	{"RU000A100LV7", 5},
+	{"RU000A100YK3", 1},
+	{"RU000A100YG1", 1},
+	{"RU000A0ZYU39", 1},
+	{"RU000A0ZYL22", 1},
+	{"RU000A103DT2", 1},
+	{"SU26229RMFS3", 1},
 }
 
-func TakeData(year string){
+func TakeData(year string) {
 	var yearSum float64
 	//var monthDict = make(map[string]float64)
 	monthDict := map[string]float64{}
@@ -97,47 +97,56 @@ func TakeData(year string){
 				fmt.Println(err)
 			}
 
-			if year != "any"{
+			if year != "any" {
 				if date == year {
-					if month != ""{
-						value = math.Round((value * bonds[i].Count)*100)/100
-						yearSum = math.Round((yearSum + value)*100)/100
-						fmt.Println(bonds[i].Name + "|", value,  "|" + "  " ,bonds[i].Count, "  |",dict[idx]["date"])
-						tmpl = append(tmpl,Info{Name: bonds[i].Name,Date:dict[idx]["date"],Value:value})
-						fmt.Println("monthDictOld: ",monthDict)
+					if month != "" {
+						value = math.Round((value*bonds[i].Count)*100) / 100
+						yearSum = math.Round((yearSum+value)*100) / 100
+						fmt.Println(bonds[i].Name+"|", value, "|"+"  ", bonds[i].Count, "  |", dict[idx]["date"])
 						// проверяем есть ли такой ключ
-						_ ,exist := monthDict[month]
+						_, exist := monthDict[month]
 						// если да, то...
 						if exist {
-							monthDict[month] += value// month:value
-						}else{
-							monthDict[month] = value// month:value
+							monthDict[month] += value // month:value
+							//tmpl = append(tmpl,Info{Date:dict[idx]["date"],Value:value})
+						} else {
+							monthDict[month] = value // month:value
+							//tmpl = append(tmpl,Info{Date:dict[idx]["date"],Value:value})
 						}
-						fmt.Println("monthDictNew: ",monthDict)
 					}
 				}
-			}else{
+			} else {
 				value = value * bonds[i].Count
 				yearSum = yearSum + value
-				fmt.Println(bonds[i].Name + "|", value,  "|" + "  " ,bonds[i].Count, "  |")
-				tmpl = append(tmpl,Info{Name: bonds[i].Name,Date:dict[idx]["date"],Value:value,YearSum: yearSum})
+				fmt.Println(bonds[i].Name+"|", value, "|"+"  ", bonds[i].Count, "  |")
 			}
 		}
 	}
-	for key,sum := range monthDict{
-		fmt.Println(year+"-"+key, ": ", sum, "rub")
+	keys := make([]string, 0, len(monthDict))
+	for key := range monthDict {
+		keys = append(keys, key)
 	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		tmpl = append(tmpl, Info{Year: year, Month: key, Value: monthDict[key]})
+		fmt.Println(year+" -", key, ":", monthDict[key])
+	}
+
+	//for key,sum := range monthDict{
+	//	fmt.Println(year+"-"+key, ": ", sum, "rub")
+	//}
 	fmt.Println("amount per year : ", yearSum, "rub")
 
 	fmt.Println(monthDict)
 }
 
-func getAllBonds(w http.ResponseWriter, r *http.Request){
+func getAllBonds(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tmpl)
 }
 
-func main(){
+func main() {
 	var year string
 	fmt.Println("enter year or print 'any' if you want to see the bonds for the entire period:  ")
 	fmt.Scan(&year)
