@@ -167,20 +167,6 @@ func Post(c *gin.Context) {
 	})
 }
 
-func PostDataToClient(c *gin.Context) {
-	tmpl1, _ := json.Marshal(all)
-	tmpl2, _ := json.Marshal(info)
-
-	fmt.Println("tmpl1: ", string(tmpl1))
-	fmt.Println("tmpl2: ", string(tmpl2))
-	c.JSON(200, struct {
-		InfoPerYear []InfoPerYear `json:"info_per_year"`
-		BondInfo    []BondInfo    `json:"bond_info"`
-	}{
-		all, info,
-	})
-}
-
 func HandleRequest() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -189,7 +175,6 @@ func HandleRequest() {
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers"},
 	}))
 	router.POST("/result", Post)
-	router.POST("/", PostDataToClient)
 	router.Run("localhost:8080")
 }
 
