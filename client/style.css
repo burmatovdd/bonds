@@ -1,0 +1,38 @@
+body{
+    margin: 0;
+    padding: 0;
+    background-color: #090D2E;
+}
+.container{
+    max-width: 500px;
+    margin: 40px auto;
+}
+.title{
+    color: white;
+    font-size: 32px;
+    margin: 0 auto;
+    max-width: 140px;
+}
+.form{
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+.input{
+    padding: 10px 0 10px 20px;
+    border-radius: 16px;
+    max-width: 200px;
+    margin: 0 auto 20px;
+}
+.button{
+    color: black;
+    margin: 0 auto;
+    border-radius: 8px;
+    background-color: lightblue;
+    max-width: 200px;
+    width: 100%;
+    border: none;
+}
+.tmpl{
+    color: white;
+}

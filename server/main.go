@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"log"
 	"math"
@@ -23,14 +25,14 @@ type Row struct {
 	Value   string   `xml:"value,attr" json:"value"`
 }
 
-type Info struct {
+type BondInfo struct {
 	Name  string  `json:"name"`
 	Value float64 `json:"value"`
 	Count float64 `json:"count"`
 	Date  string  `json:"date"`
 }
 
-type AllInfo struct {
+type InfoPerYear struct {
 	Year  string  `json:"year"`
 	Month string  `json:"month"`
 	Value float64 `json:"value"`
@@ -43,24 +45,28 @@ type Bond struct {
 
 var input string
 var data []Row
-var all []AllInfo
-var info []Info
-var bonds = [8]Bond{
-	{"RU000A100YG1", 10},
-	{"RU000A100LV7", 5},
-	{"RU000A100YK3", 2},
-	{"RU000A100YG1", 3},
-	{"RU000A0ZYU39", 19},
-	{"RU000A0ZYL22", 6},
-	{"RU000A103DT2", 1},
-	{"SU26229RMFS3", 11},
+var all []InfoPerYear
+var info []BondInfo
+var bonds = [7]Bond{
+	//{"RU000A102RX6", 1},
+	//{"RU000A1007Z2", 1},
+	//{"RU000A0ZYCR1", 1},
+	//{"RU000A1041B2", 1},
+	//{"RU000A0ZZZ17", 1},
+	//{"RU000A103F27", 1},// 9,42%
+
+	{"RU000A103UL3", 2},
+	{"RU000A1049P5", 2},
+	{"RU000A1040V2", 2},
+	{"RU000A103WD6", 2},
+	{"RU000A104CJ3", 1},
+	{"RU000A1043G7", 1},
+	{"RU000A104FG2", 2},
 }
 var monthDict = make(map[string]float64)
 
 func TakeData(year string) {
 	var yearSum float64
-	//var monthDict = make(map[string]float64)
-	//monthDict := map[string]float64{}
 
 	for i := 0; i < len(bonds); i++ {
 		fmt.Println("Name" + "        |" + " Value" + " | " + "Count " + " |" + "Date" + "      |")
@@ -91,8 +97,7 @@ func TakeData(year string) {
 		}
 
 		var dict []map[string]string
-		//var monthArr = make([]float64,0)
-		if err := json.Unmarshal(result, &dict); err != nil {
+		if err = json.Unmarshal(result, &dict); err != nil {
 			panic(err)
 		}
 
@@ -100,11 +105,7 @@ func TakeData(year string) {
 
 			date := (dict[idx]["date"])[:4]
 			month := (dict[idx]["date"])[5:7]
-			value, err := strconv.ParseFloat(dict[idx]["value"], 64)
-
-			if err != nil {
-				fmt.Println(err)
-			}
+			value, _ := strconv.ParseFloat(dict[idx]["value"], 64)
 
 			if year != "any" {
 				if date == year {
@@ -117,10 +118,10 @@ func TakeData(year string) {
 						// если да, то...
 						if exist {
 							monthDict[month] += value // month:value
-							info = append(info, Info{Name: bonds[i].Name, Value: value, Count: bonds[i].Count, Date: dict[idx]["date"]})
+							info = append(info, BondInfo{Name: bonds[i].Name, Value: value, Count: bonds[i].Count, Date: dict[idx]["date"]})
 						} else {
 							monthDict[month] = value // month:value
-							info = append(info, Info{Name: bonds[i].Name, Value: value, Count: bonds[i].Count, Date: dict[idx]["date"]})
+							info = append(info, BondInfo{Name: bonds[i].Name, Value: value, Count: bonds[i].Count, Date: dict[idx]["date"]})
 						}
 					}
 				}
@@ -138,34 +139,60 @@ func TakeData(year string) {
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		all = append(all, AllInfo{Year: year, Month: key, Value: monthDict[key]})
+		all = append(all, InfoPerYear{Year: year, Month: key, Value: monthDict[key]})
 		fmt.Println(year+" -", key, ":", monthDict[key])
 	}
-	fmt.Println("amount per year : ", yearSum, "rub")
 
-	fmt.Println(monthDict)
+}
+
+func Post(c *gin.Context) {
+	jsonData, _ := ioutil.ReadAll(c.Request.Body)
+	fmt.Println(string(jsonData))
+	yearMap := make(map[string]string)
+	err := json.Unmarshal(jsonData, &yearMap)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
+	var year string
+	for _, value := range yearMap {
+		year = string(value)
+	}
+	fmt.Println("year: ", year)
+	TakeData(year)
+	c.JSON(200, struct {
+		InfoPerYear []InfoPerYear `json:"info_per_year"`
+		BondInfo    []BondInfo    `json:"bond_info"`
+	}{
+		all, info,
+	})
+}
+
+func PostDataToClient(c *gin.Context) {
+	tmpl1, _ := json.Marshal(all)
+	tmpl2, _ := json.Marshal(info)
+
+	fmt.Println("tmpl1: ", string(tmpl1))
+	fmt.Println("tmpl2: ", string(tmpl2))
+	c.JSON(200, struct {
+		InfoPerYear []InfoPerYear `json:"info_per_year"`
+		BondInfo    []BondInfo    `json:"bond_info"`
+	}{
+		all, info,
+	})
 }
 
 func HandleRequest() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "templates/home_page.html")
-	})
-	http.HandleFunc("/result", func(w http.ResponseWriter, r *http.Request) {
-
-		input = r.FormValue("year")
-
-		fmt.Fprintf(w, "Год: %s ", input)
-		fmt.Println("year: ", input)
-		TakeData(input)
-		for key, value := range monthDict {
-			fmt.Fprintf(w, " Дата: %s Значение: %f", input+"-"+key, value)
-		}
-	})
-	fmt.Println("Server is listening...")
-	http.ListenAndServe(":8080", nil)
+	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
+		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers"},
+	}))
+	router.POST("/result", Post)
+	router.POST("/", PostDataToClient)
+	router.Run("localhost:8080")
 }
 
 func main() {
-
 	HandleRequest()
 }
