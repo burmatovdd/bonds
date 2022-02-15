@@ -2,8 +2,8 @@
 
 # :building_construction: Установка зависимостей
 > Перед началом любых действий по сборке необходимо  
-> `cd client`
-> `npm install`
+- `cd client`
+- `npm install`
 
 # :rocket: Запуск
 > Запуск версии для разработки 
