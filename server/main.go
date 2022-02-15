@@ -10,7 +10,6 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"sort"
 	"strconv"
 )
 
@@ -25,37 +24,33 @@ type Row struct {
 	Value   string   `xml:"value,attr" json:"value"`
 }
 
-type BondInfo struct {
-	Name  string  `json:"name"`
-	Value float64 `json:"value"`
-	Count float64 `json:"count"`
-	Date  string  `json:"date"`
-}
-
-type InfoPerYear struct {
-	Year  string  `json:"year"`
-	Month string  `json:"month"`
-	Value float64 `json:"value"`
-}
-
 type Bond struct {
 	Name  string  `json:"name"`
 	Count float64 `json:"count"`
 }
 
+type BondInfo struct {
+	Bond Bond `json:"bond"`
+	Coupons []Coupon `json:"coupons"`
+}
+
+type Coupon struct {
+	Date string `json:"date"`
+	Value float64 `json:"value"`
+}
+
+type Test struct {
+	Coupons []BondInfo `json:"coupons"`
+}
+
 var input string
 var data []Row
-var all []InfoPerYear
-var info []BondInfo
-var bonds = [7]Bond{
-	//{"RU000A102RX6", 1},
-	//{"RU000A1007Z2", 1},
-	//{"RU000A0ZYCR1", 1},
-	//{"RU000A1041B2", 1},
-	//{"RU000A0ZZZ17", 1},
-	//{"RU000A103F27", 1},// 9,42%
 
-	{"RU000A103UL3", 2},
+var bonds = [7]Bond{
+	{
+		"RU000A103UL3",
+		2,
+	},
 	{"RU000A1049P5", 2},
 	{"RU000A1040V2", 2},
 	{"RU000A103WD6", 2},
@@ -65,10 +60,18 @@ var bonds = [7]Bond{
 }
 var monthDict = make(map[string]float64)
 
-func TakeData(year string) {
+func TakeData(year string) Test {
+	var bondInfos []BondInfo
 	var yearSum float64
 
 	for i := 0; i < len(bonds); i++ {
+		var bondInfo = BondInfo {
+			Bond{
+				bonds[i].Name,
+				bonds[i].Count,
+			},
+			[]Coupon{},
+		}
 		fmt.Println("Name" + "        |" + " Value" + " | " + "Count " + " |" + "Date" + "      |")
 		response, err := http.Get("https://iss.moex.com/iss/statistics/engines/stock/markets/bonds/bondization/" + bonds[i].Name + "?iss.meta=off&iss.only=coupons&coupons.columns=coupondate,value")
 		if err != nil {
@@ -87,13 +90,12 @@ func TakeData(year string) {
 		err = xml.Unmarshal(byteValue, &data)
 		if nil != err {
 			fmt.Println("Error unmarshalling from XML", err)
-			return
+
 		}
 
 		result, err := json.Marshal(&data.Rows)
 		if nil != err {
 			fmt.Println("Error marshalling to JSON", err)
-			return
 		}
 
 		var dict []map[string]string
@@ -118,11 +120,18 @@ func TakeData(year string) {
 						// если да, то...
 						if exist {
 							monthDict[month] += value // month:value
-							info = append(info, BondInfo{Name: bonds[i].Name, Value: value, Count: bonds[i].Count, Date: dict[idx]["date"]})
+							var coupon = Coupon{
+								Date: dict[idx]["date"],
+								Value: value,
+							}
+							bondInfo.Coupons = append(bondInfo.Coupons,coupon )
 						} else {
 							monthDict[month] = value // month:value
-							info = append(info, BondInfo{Name: bonds[i].Name, Value: value, Count: bonds[i].Count, Date: dict[idx]["date"]})
-						}
+							var coupon = Coupon{
+								Date: dict[idx]["date"],
+								Value: value,
+							}
+							bondInfo.Coupons = append(bondInfo.Coupons, coupon)						}
 					}
 				}
 			} else {
@@ -131,39 +140,34 @@ func TakeData(year string) {
 				fmt.Println(bonds[i].Name+"|", value, "|"+"  ", bonds[i].Count, "  |")
 			}
 		}
+		bondInfos = append(bondInfos,bondInfo)
 	}
-	keys := make([]string, 0, len(monthDict))
-	for key := range monthDict {
-		keys = append(keys, key)
+	tmpl := Test{
+		bondInfos,
 	}
-	sort.Strings(keys)
-
-	for _, key := range keys {
-		all = append(all, InfoPerYear{Year: year, Month: key, Value: monthDict[key]})
-		fmt.Println(year+" -", key, ":", monthDict[key])
-	}
-
+	return tmpl
 }
 
 func Post(c *gin.Context) {
 	jsonData, _ := ioutil.ReadAll(c.Request.Body)
 	fmt.Println(string(jsonData))
+
 	yearMap := make(map[string]string)
 	err := json.Unmarshal(jsonData, &yearMap)
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
+
 	var year string
 	for _, value := range yearMap {
 		year = string(value)
 	}
-	fmt.Println("year: ", year)
-	TakeData(year)
+
+	test2 := TakeData(year)
 	c.JSON(200, struct {
-		InfoPerYear []InfoPerYear `json:"info_per_year"`
-		BondInfo    []BondInfo    `json:"bond_info"`
+		BondInfos []BondInfo `json:"bondInfos"`
 	}{
-		all, info,
+		test2.Coupons,
 	})
 }
 
