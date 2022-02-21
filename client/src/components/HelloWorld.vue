@@ -8,6 +8,7 @@
 </template>
 
 <script>
+"use strict";
 import { defineComponent } from 'vue';
 export default defineComponent({
   setup(){
@@ -30,13 +31,14 @@ export default defineComponent({
       })
           .then((data) => {
             console.log(data);
-
+            const div = document.createElement("div");
             const table = document.createElement("table");
             const thead = document.createElement("thead");
             const thTr = document.createElement("tr");
             const thName = document.createElement("th");
             const thCount = document.createElement("th");
             table.className = "bondsTable"
+            div.className = "table-responsive"
 
             table.appendChild(thead);
             thead.appendChild(thTr);
@@ -53,6 +55,15 @@ export default defineComponent({
             const thDate = document.createElement("th");
             thDate.className = "thDate";
             thTr.appendChild(thDate);
+
+            const thDataTrTitle = document.createElement("tr");
+            thDate.appendChild(thDataTrTitle);
+
+            const thDataTdTitle = document.createElement("td");
+            thDataTrTitle.appendChild(thDataTdTitle);
+            thDataTdTitle.innerText = "Date";
+            thDataTdTitle.setAttribute("colspan","12")
+
             const yearTr = document.createElement("tr");
             thDate.appendChild(yearTr);
             for (let i = 1; i <= 12; i++){
@@ -90,50 +101,24 @@ export default defineComponent({
               bodyTr.appendChild(bodyTdValue);
               bodyTdValue.className = "bodyTdValue";
 
+              const bodyValuesTr = document.createElement('tr');
+              bodyTdValue.appendChild(bodyValuesTr)
               for (let j = 0; j < a.length; j++){
                 const bodyTrTdValue = document.createElement("td");
-                bodyTdValue.appendChild(bodyTrTdValue);
-                for (let k = 0; k < data.bondInfos[i].coupons.length;k++){
-                  if (a[j] === data.bondInfos[i].coupons[k].date){
-                    console.log("a[j]: ",a[j]);
-                    console.log("data.bondInfos[i].coupons[k].date: ",data.bondInfos[i].coupons[k].date);
-                    console.log("data.bondInfos[i].bond.name: ",data.bondInfos[i].bond.name);
-                    bodyTrTdValue.innerText = data.bondInfos[i].coupons[k].value;
-                  }else{
-                    // bodyTrTdValue.className = "bodyTrTdValue";
-                    // bodyTrTdValue.innerText = "";
-                  }
+                bodyValuesTr.appendChild(bodyTrTdValue);
+                let findedCoupon =data.bondInfos[i].coupons.find(coupon=>{
+                  console.log("a[j]: ", a[j]);
+                  console.log("month: ", coupon.date);
+                  return a[j]=== coupon.date
+                });
+                if (findedCoupon){
+                  // console.log("data.bondInfos[i].coupons[j]: ", data.bondInfos[i].coupons[j]);
+                  bodyTrTdValue.innerText = findedCoupon.value;
                 }
-                // if(question === true){
-                //   bodyTrTdValue.innerText = data.bondInfos[i].coupons[k].value;
-                // }else{
-                //   bodyTrTdValue.className = "bodyTrTdValue";
-                //   bodyTrTdValue.innerText = "";
-                // }
               }
             }
-
-              // for(let j = 0; j < data.bondInfos[i].coupons.length;j++){
-              //   let question;
-              //   const bodyTrTdValue = document.createElement("td");
-              //   for (let k = 0; k < a.length; k++){
-              //     // const bodyTrValue = document.createElement("tr");
-              //     // bodyTdValue.appendChild(bodyTrValue);
-              //     if(a[k] === data.bondInfos[i].coupons[j].date){
-              //       question = true;
-              //       bodyTrTdValue.innerText = data.bondInfos[i].coupons[j].value;
-              //     }else{
-              //       question = false;
-              //     }
-              //   }
-              //   // const bodyTrValue = document.createElement("tr");
-              //   // bodyTdValue.appendChild(bodyTrValue);
-              //   //
-              //   // const bodyTrTdValue = document.createElement("td");
-              //   // bodyTrValue.appendChild(bodyTrTdValue);
-              // }
-            // }
-            document.body.append(table);
+            div.appendChild(table);
+            document.body.append(div);
           }).catch(console.error);
     }
     return{

@@ -40,9 +40,8 @@ body{
 }
 .bondsTable{
     display: block;
-    margin: 0 auto;
     color: white;
-    max-width: 400px;
+    width: 100%;
 }
 .bodyTdCount{
     padding-left: 15px;
@@ -60,4 +59,9 @@ body{
 }
 .bodyTrTdValue{
     width: 40px;
+}
+.table-responsive{
+    margin: 0 auto;
+    max-width: 800px;
+    overflow-x: auto;
 }
