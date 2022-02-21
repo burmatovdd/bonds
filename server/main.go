@@ -107,6 +107,7 @@ func TakeData(year string) Test {
 
 			date := (dict[idx]["date"])[:4]
 			month := (dict[idx]["date"])[5:7]
+			fullDate := (dict[idx]["date"])[:7]
 			value, _ := strconv.ParseFloat(dict[idx]["value"], 64)
 
 			if year != "any" {
@@ -121,17 +122,18 @@ func TakeData(year string) Test {
 						if exist {
 							monthDict[month] += value // month:value
 							var coupon = Coupon{
-								Date: dict[idx]["date"],
+								Date: fullDate,
 								Value: value,
 							}
 							bondInfo.Coupons = append(bondInfo.Coupons,coupon )
 						} else {
 							monthDict[month] = value // month:value
 							var coupon = Coupon{
-								Date: dict[idx]["date"],
+								Date: fullDate,
 								Value: value,
 							}
-							bondInfo.Coupons = append(bondInfo.Coupons, coupon)						}
+							bondInfo.Coupons = append(bondInfo.Coupons, coupon)
+						}
 					}
 				}
 			} else {
