@@ -56,16 +56,23 @@ export default defineComponent({
             thDate.className = "thDate";
             thTr.appendChild(thDate);
 
+            const ThDataTrTable = document.createElement("table");
             const thDataTrTitle = document.createElement("tr");
-            thDate.appendChild(thDataTrTitle);
+
+            ThDataTrTable.appendChild(thDataTrTitle)
+            thDate.appendChild(ThDataTrTable);
 
             const thDataTdTitle = document.createElement("td");
             thDataTrTitle.appendChild(thDataTdTitle);
             thDataTdTitle.innerText = "Date";
             thDataTdTitle.setAttribute("colspan","12")
 
+            const yearTable = document.createElement("table");
             const yearTr = document.createElement("tr");
-            thDate.appendChild(yearTr);
+
+            yearTable.appendChild(yearTr)
+            thDate.appendChild(yearTable);
+
             for (let i = 1; i <= 12; i++){
               const yearTd = document.createElement("td");
               yearTr.appendChild(yearTd);
@@ -101,11 +108,17 @@ export default defineComponent({
               bodyTr.appendChild(bodyTdValue);
               bodyTdValue.className = "bodyTdValue";
 
+              const bodyValuesTable = document.createElement('table');
               const bodyValuesTr = document.createElement('tr');
-              bodyTdValue.appendChild(bodyValuesTr)
+
+              // bodyValuesTable.insertRow(-1)//-1 - конец, 0 - начало
+              bodyValuesTable.appendChild(bodyValuesTr)
+              bodyTdValue.appendChild(bodyValuesTable)
+
               for (let j = 0; j < a.length; j++){
                 const bodyTrTdValue = document.createElement("td");
                 bodyValuesTr.appendChild(bodyTrTdValue);
+                bodyTrTdValue.className = "bodyTrTdValue";
                 let findedCoupon =data.bondInfos[i].coupons.find(coupon=>{
                   console.log("a[j]: ", a[j]);
                   console.log("month: ", coupon.date);

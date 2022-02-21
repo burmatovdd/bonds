@@ -44,24 +44,35 @@ body{
     width: 100%;
 }
 .bodyTdCount{
-    padding-left: 15px;
+    /*padding-left: 15px;*/
 }
 
 .thValue{
-    padding-left: 20px;
+    /*padding-left: 20px;*/
 }
 
 .bodyTdValue{
-    padding-left: 20px;
+    /*padding-left: 20px;*/
 }
 .yearTd{
-    padding-left: 20px;
+    padding: 0 20px;
+    width: 60px;
 }
 .bodyTrTdValue{
-    width: 40px;
+    /*width: 40px;*/
 }
 .table-responsive{
     margin: 0 auto;
     max-width: 800px;
     overflow-x: auto;
+}
+table{
+    width: 100%;
+}
+td table,th table{
+    table-layout: fixed;
+}
+.bodyTrTdValue{
+    padding: 0 20px;
+    text-align: center;
 }
