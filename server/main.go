@@ -30,12 +30,12 @@ type Bond struct {
 }
 
 type BondInfo struct {
-	Bond Bond `json:"bond"`
+	Bond    Bond     `json:"bond"`
 	Coupons []Coupon `json:"coupons"`
 }
 
 type Coupon struct {
-	Date string `json:"date"`
+	Date  string  `json:"date"`
 	Value float64 `json:"value"`
 }
 
@@ -65,7 +65,7 @@ func TakeData(year string) Test {
 	var yearSum float64
 
 	for i := 0; i < len(bonds); i++ {
-		var bondInfo = BondInfo {
+		var bondInfo = BondInfo{
 			Bond{
 				bonds[i].Name,
 				bonds[i].Count,
@@ -122,14 +122,14 @@ func TakeData(year string) Test {
 						if exist {
 							monthDict[month] += value // month:value
 							var coupon = Coupon{
-								Date: fullDate,
+								Date:  fullDate,
 								Value: value,
 							}
-							bondInfo.Coupons = append(bondInfo.Coupons,coupon )
+							bondInfo.Coupons = append(bondInfo.Coupons, coupon)
 						} else {
 							monthDict[month] = value // month:value
 							var coupon = Coupon{
-								Date: fullDate,
+								Date:  fullDate,
 								Value: value,
 							}
 							bondInfo.Coupons = append(bondInfo.Coupons, coupon)
@@ -142,7 +142,7 @@ func TakeData(year string) Test {
 				fmt.Println(bonds[i].Name+"|", value, "|"+"  ", bonds[i].Count, "  |")
 			}
 		}
-		bondInfos = append(bondInfos,bondInfo)
+		bondInfos = append(bondInfos, bondInfo)
 	}
 	tmpl := Test{
 		bondInfos,
@@ -151,11 +151,14 @@ func TakeData(year string) Test {
 }
 
 func Post(c *gin.Context) {
-	jsonData, _ := ioutil.ReadAll(c.Request.Body)
+	jsonData, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
 	fmt.Println(string(jsonData))
 
 	yearMap := make(map[string]string)
-	err := json.Unmarshal(jsonData, &yearMap)
+	err = json.Unmarshal(jsonData, &yearMap)
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
@@ -181,7 +184,10 @@ func HandleRequest() {
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers"},
 	}))
 	router.POST("/result", Post)
-	router.Run("localhost:8080")
+	err := router.Run(":8080")
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
 }
 
 func main() {
