@@ -85,16 +85,16 @@ export default defineComponent({
                 yearTd.innerText = tmpl.year+"-"+i;
               }
             }
-            console.log(a);
 
             const tBody = document.createElement("tbody");
             table.appendChild(tBody);
 
+            let yearSum = 0;
             for (let i = 0; i < data.bondInfos.length;i++){
               const bodyTr = document.createElement("tr");
+              bodyTr.className = "bodyTr";
               tBody.appendChild(bodyTr);
 
-              // bodyTr.className = "name tableText"
               const bodyTdName = document.createElement("td");
               bodyTr.appendChild(bodyTdName);
               bodyTdName.innerText = data.bondInfos[i].bond.name;
@@ -111,27 +111,34 @@ export default defineComponent({
               const bodyValuesTable = document.createElement('table');
               const bodyValuesTr = document.createElement('tr');
 
-              // bodyValuesTable.insertRow(-1)//-1 - конец, 0 - начало
               bodyValuesTable.appendChild(bodyValuesTr)
               bodyTdValue.appendChild(bodyValuesTable)
 
               for (let j = 0; j < a.length; j++){
                 const bodyTrTdValue = document.createElement("td");
+
                 bodyValuesTr.appendChild(bodyTrTdValue);
                 bodyTrTdValue.className = "bodyTrTdValue";
-                let findedCoupon =data.bondInfos[i].coupons.find(coupon=>{
-                  console.log("a[j]: ", a[j]);
-                  console.log("month: ", coupon.date);
-                  return a[j]=== coupon.date
+                let findedCoupon = data.bondInfos[i].coupons.find(coupon=>{
+                  return a[j] === coupon.date
                 });
                 if (findedCoupon){
-                  // console.log("data.bondInfos[i].coupons[j]: ", data.bondInfos[i].coupons[j]);
                   bodyTrTdValue.innerText = findedCoupon.value;
+                  yearSum += findedCoupon.value;
                 }
               }
             }
+            const newYearSum = yearSum.toFixed();
+            console.log("yearSum: ", newYearSum.toString());
+            const divYearSum = document.createElement("div");
+            divYearSum.className = "divYearSum"
+            divYearSum.innerText = "Year sum: " + newYearSum.toString() + " " + "rub";
+
+
             div.appendChild(table);
+
             document.body.append(div);
+            document.body.append(divYearSum);
           }).catch(console.error);
     }
     return{
