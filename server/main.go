@@ -46,18 +46,7 @@ type Test struct {
 var input string
 var data []Row
 
-var bonds = [7]Bond{
-	{
-		"RU000A103UL3",
-		2,
-	},
-	{"RU000A1049P5", 2},
-	{"RU000A1040V2", 2},
-	{"RU000A103WD6", 2},
-	{"RU000A104CJ3", 1},
-	{"RU000A1043G7", 1},
-	{"RU000A104FG2", 2},
-}
+var bonds = []Bond{}
 var monthDict = make(map[string]float64)
 
 func TakeData(year string) Test {
@@ -150,7 +139,7 @@ func TakeData(year string) Test {
 	return tmpl
 }
 
-func Post(c *gin.Context) {
+func yearPost(c *gin.Context) {
 	jsonData, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
 		fmt.Println("err: ", err)
@@ -176,6 +165,33 @@ func Post(c *gin.Context) {
 	})
 }
 
+func bondsPost(c *gin.Context) {
+	jsonData, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
+	fmt.Println(string(jsonData))
+
+	bondsMap := make(map[string]string)
+	err = json.Unmarshal(jsonData, &bondsMap)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
+
+	fmt.Println("bondsMap: ", bondsMap)
+	var bond string
+	var count float64
+	for i := 1; i < len(bondsMap); i++ {
+		bond = bondsMap["bond"]
+		count, _ = strconv.ParseFloat(bondsMap["count"], 64)
+		bonds = append(bonds, Bond{Name: bond, Count: count})
+		fmt.Println("bond: ", bond)
+		fmt.Println("count: ", count)
+	}
+
+	fmt.Println(bonds)
+}
+
 func HandleRequest() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -183,7 +199,8 @@ func HandleRequest() {
 		AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers"},
 	}))
-	router.POST("/result", Post)
+	router.POST("/year", yearPost)
+	router.POST("/bonds", bondsPost)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)

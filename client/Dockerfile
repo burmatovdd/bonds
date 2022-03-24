@@ -1,6 +1,6 @@
 FROM node as build-stage-front
 WORKDIR /app
-COPY package*.json ./
+COPY client/package*.json ./
 RUN npm install --production && npm audit fix
 COPY client .
 RUN npm run build

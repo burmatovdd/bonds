@@ -8,7 +8,6 @@
 </template>
 
 <script>
-"use strict";
 import { defineComponent } from 'vue';
 export default defineComponent({
   setup(){
@@ -18,7 +17,7 @@ export default defineComponent({
     async function sendData (){
       tmpl.year = document.getElementById("input").value
 
-      let sendUrl = "http://localhost:8080/result";
+      let sendUrl = "http://localhost:8080/year";
 
       await fetch(sendUrl, {
         method: 'POST',
@@ -150,5 +149,6 @@ export default defineComponent({
 </script>
 
 <style lang="css">
-@import "../style/style.css";
+@import "../../style/style.css";
+@import "./inputYear.css";
 </style>

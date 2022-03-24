@@ -1,0 +1,29 @@
+.openMenu{
+  color: black;
+  border-radius: 8px;
+  background-color: lightblue;
+  max-width: 100px;
+  width: 100%;
+  border: none;
+}
+.header{
+  width: 80%;
+  display: flex;
+  justify-content: end;
+}
+.menuContainer{
+  max-width: 500px;
+  margin: 10% auto;
+  display: flex;
+  flex-direction: column;
+}
+.closeMenu{
+  color: black;
+  border-radius: 8px;
+  background-color: lightblue;
+  max-width: 100px;
+  width: 100%;
+  height: 20px;
+  border: none;
+  margin: 0 auto;
+}
