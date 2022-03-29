@@ -5,6 +5,28 @@
     <input id="input" type="text" class="input">
     <button id="button" class="button" @click="sendData">Submit</button>
   </div>
+<!--  <div class="table-responsive">-->
+<!--    <table class="bondsTable">-->
+<!--      <thead>-->
+<!--      <tr>-->
+<!--        <th class="thName">Name</th>-->
+<!--        <th class="thCount">Count</th>-->
+<!--        <th class="thDate">-->
+<!--          <table>-->
+<!--            <tr>-->
+<!--              <td colspan="12">Date</td>-->
+<!--            </tr>-->
+<!--          </table>-->
+<!--          <table class="months">-->
+<!--            <tr id="months" v-for="month in monthArray" :key="month.day">-->
+<!--              {{month.day}}-->
+<!--            </tr>-->
+<!--          </table>-->
+<!--        </th>-->
+<!--      </tr>-->
+<!--      </thead>-->
+<!--    </table>-->
+<!--  </div>-->
 </template>
 
 <script>
@@ -14,6 +36,7 @@ export default defineComponent({
     let tmpl = {
       year : null,
     }
+    // let monthArray = []
     async function sendData (){
       tmpl.year = document.getElementById("input").value
 
@@ -29,6 +52,20 @@ export default defineComponent({
         return response.json();
       })
           .then((data) => {
+            // monthArray = [
+            //   {day: tmpl.year + "-" + "01"},
+            //   {day: tmpl.year + "-" + "02"},
+            //   {day: tmpl.year + "-" + "03"},
+            //   {day: tmpl.year + "-" + "04"},
+            //   {day: tmpl.year + "-" + "05"},
+            //   {day: tmpl.year + "-" + "06"},
+            //   {day: tmpl.year + "-" + "07"},
+            //   {day: tmpl.year + "-" + "08"},
+            //   {day: tmpl.year + "-" + "09"},
+            //   {day: tmpl.year + "-" + "10"},
+            //   {day: tmpl.year + "-" + "11"},
+            //   {day: tmpl.year + "-" + "12"},
+            // ]
             console.log(data);
             const div = document.createElement("div");
             const table = document.createElement("table");
@@ -157,6 +194,7 @@ export default defineComponent({
     return{
       tmpl,
       sendData,
+      // monthArray
     }
   }
 })
