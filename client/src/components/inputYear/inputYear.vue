@@ -89,19 +89,19 @@ export default defineComponent({
             table.appendChild(tBody);
 
             let yearSum = 0;
-            for (let i = 0; i < data.bondInfos.length;i++){
+            for (let i = 0; i < data.allInfos.bondInfos.length;i++){
               const bodyTr = document.createElement("tr");
               bodyTr.className = "bodyTr";
               tBody.appendChild(bodyTr);
 
               const bodyTdName = document.createElement("td");
               bodyTr.appendChild(bodyTdName);
-              bodyTdName.innerText = data.bondInfos[i].bond.name;
+              bodyTdName.innerText = data.allInfos.bondInfos[i].bond.name;
 
               const bodyTdCount = document.createElement('td');
               bodyTr.appendChild(bodyTdCount);
               bodyTdCount.className = "bodyTdCount";
-              bodyTdCount.innerText = data.bondInfos[i].bond.count;
+              bodyTdCount.innerText = data.allInfos.bondInfos[i].bond.count;
 
               const bodyTdValue = document.createElement('td');
               bodyTr.appendChild(bodyTdValue);
@@ -118,7 +118,8 @@ export default defineComponent({
 
                 bodyValuesTr.appendChild(bodyTrTdValue);
                 bodyTrTdValue.className = "bodyTrTdValue";
-                let findedCoupon = data.bondInfos[i].coupons.find(coupon=>{
+                //  алгоритм заполнения данных по месяцам
+                let findedCoupon = data.allInfos.bondInfos[i].coupons.find(coupon=>{
                   return a[j] === coupon.date
                 });
                 if (findedCoupon){
@@ -127,17 +128,30 @@ export default defineComponent({
                 }
               }
             }
-            const newYearSum = yearSum.toFixed();
+
+            const newYearSum = yearSum.toFixed();// округление числа
             console.log("yearSum: ", newYearSum.toString());
             const divYearSum = document.createElement("div");
             divYearSum.className = "divYearSum"
             divYearSum.innerText = "Year sum: " + newYearSum.toString() + " " + "rub";
 
+            const divMonthValueContainer = document.createElement("div");
+            divMonthValueContainer.className = "divMonthValueContainer";
+            for ( let i = 0; i < data.allInfos.months.length; i++){
+
+              const newMonthValue = data.allInfos.months[i].value.toFixed();
+              const divMonthValue = document.createElement("div");
+              divMonthValue.innerText = "Month " + data.allInfos.months[i].date + " :" + newMonthValue.toString() + " " + "rub";
+              divMonthValueContainer.appendChild(divMonthValue);
+
+            }
 
             div.appendChild(table);
 
             document.body.append(div);
             document.body.append(divYearSum);
+            document.body.append(divMonthValueContainer);
+
           }).catch(console.error);
     }
     return{

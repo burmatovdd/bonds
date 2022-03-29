@@ -10,6 +10,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -29,6 +30,11 @@ type Bond struct {
 	Count float64 `json:"count"`
 }
 
+type AllInfo struct {
+	BondInfo []BondInfo `json:"bondInfos"`
+	Months   []Months   `json:"months"`
+}
+
 type BondInfo struct {
 	Bond    Bond     `json:"bond"`
 	Coupons []Coupon `json:"coupons"`
@@ -39,17 +45,22 @@ type Coupon struct {
 	Value float64 `json:"value"`
 }
 
+type Months struct {
+	Date  string  `json:"date"`
+	Value float64 `json:"value"`
+}
+
 type Test struct {
-	Coupons []BondInfo `json:"coupons"`
+	Coupons AllInfo `json:"coupons"`
 }
 
 var input string
 var data []Row
 
 var bonds = []Bond{}
-var monthDict = make(map[string]float64)
 
 func TakeData(year string) Test {
+	var monthDict = make(map[string]float64)
 	var bondInfos []BondInfo
 	var yearSum float64
 
@@ -116,7 +127,7 @@ func TakeData(year string) Test {
 							}
 							bondInfo.Coupons = append(bondInfo.Coupons, coupon)
 						} else {
-							monthDict[month] = value // month:value
+							monthDict[month] = value
 							var coupon = Coupon{
 								Date:  fullDate,
 								Value: value,
@@ -133,9 +144,34 @@ func TakeData(year string) Test {
 		}
 		bondInfos = append(bondInfos, bondInfo)
 	}
-	tmpl := Test{
-		bondInfos,
+
+	keys := make([]string, 0, len(monthDict))
+	for key := range monthDict {
+		keys = append(keys, key)
 	}
+	sort.Strings(keys)
+
+	var monthInfos []Months
+	for _, key := range keys {
+		var monthInfo = Months{
+			key,
+			monthDict[key],
+		}
+		monthInfos = append(monthInfos, monthInfo)
+	}
+
+	//var allInfos []AllInfo
+	var allInfo = AllInfo{
+		bondInfos,
+		monthInfos,
+	}
+
+	//allInfos = append(allInfos, allInfo)
+
+	tmpl := Test{
+		allInfo,
+	}
+
 	return tmpl
 }
 
@@ -159,7 +195,7 @@ func yearPost(c *gin.Context) {
 
 	test2 := TakeData(year)
 	c.JSON(200, struct {
-		BondInfos []BondInfo `json:"bondInfos"`
+		AllInfos AllInfo `json:"allInfos"`
 	}{
 		test2.Coupons,
 	})

@@ -73,5 +73,10 @@ td table,th table{
 .divYearSum{
   color: white;
   max-width: 150px;
-  margin: 20px auto 200px;
+  margin: 20px auto;
+}
+.divMonthValueContainer{
+  color: white;
+  width: 150px;
+  margin: 0 auto;
 }

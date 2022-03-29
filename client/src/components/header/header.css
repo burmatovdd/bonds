@@ -9,7 +9,7 @@
 .header{
   width: 80%;
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
 }
 .menuContainer{
   max-width: 500px;
