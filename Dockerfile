@@ -10,7 +10,7 @@ RUN ls -la
 RUN pwd
 
 RUN go mod download
-RUN go build -o bonds main.go
+RUN go build -o bonds .
 EXPOSE 8080
 CMD ["./bonds"]
 

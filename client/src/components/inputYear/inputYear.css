@@ -80,3 +80,13 @@ td table,th table{
   width: 150px;
   margin: 0 auto;
 }
+
+.months{
+  display: flex;
+}
+.months-day{
+  width: 90px;
+}
+.total-value{
+  width: 90px;
+}

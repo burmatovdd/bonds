@@ -57,7 +57,6 @@ func bondsPost(c *gin.Context) {
 		bonds = append(bonds, Bond{Name: bond, Count: count})
 	}
 
-	fmt.Println("bonds: ", bonds)
 	for i := 0; i < len(bonds); i++ {
 		var bondInfo = Bond{
 			bonds[i].Name,

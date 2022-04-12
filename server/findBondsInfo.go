@@ -17,7 +17,7 @@ var data []Row
 var bonds = []Bond{}
 
 func TakeData(year string) Test {
-	var monthDict = make(map[string]float64)
+	monthDict := make(map[string]float64)
 	var bondInfos []BondInfo
 	var yearSum float64
 	bonds = getAllBonds()
@@ -36,11 +36,14 @@ func TakeData(year string) Test {
 			log.Fatal(err)
 		}
 
-		// defer очищаем ресуры
-		defer response.Body.Close()
 		byteValue, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		err = response.Body.Close()
+		if nil != err {
+			fmt.Println("Error response.Body.Close", err)
 		}
 
 		data := &Document{}

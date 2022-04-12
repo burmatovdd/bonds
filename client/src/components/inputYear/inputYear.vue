@@ -5,38 +5,77 @@
     <input id="input" type="text" class="input">
     <button id="button" class="button" @click="sendData">Submit</button>
   </div>
-<!--  <div class="table-responsive">-->
-<!--    <table class="bondsTable">-->
-<!--      <thead>-->
-<!--      <tr>-->
-<!--        <th class="thName">Name</th>-->
-<!--        <th class="thCount">Count</th>-->
-<!--        <th class="thDate">-->
-<!--          <table>-->
-<!--            <tr>-->
-<!--              <td colspan="12">Date</td>-->
-<!--            </tr>-->
-<!--          </table>-->
-<!--          <table class="months">-->
-<!--            <tr id="months" v-for="month in monthArray" :key="month.day">-->
-<!--              {{month.day}}-->
-<!--            </tr>-->
-<!--          </table>-->
-<!--        </th>-->
-<!--      </tr>-->
-<!--      </thead>-->
-<!--    </table>-->
-<!--  </div>-->
+  <div class="table-responsive">
+    <table class="bondsTable">
+      <thead>
+      <tr>
+        <th class="thName">Name</th>
+        <th class="thCount">Count</th>
+        <th class="thDate">
+          <table>
+            <tr>
+              <td colspan="12">Date</td>
+            </tr>
+          </table>
+          <table class="months">
+            <tr id="months" v-for="month in monthArray" :key="month.day" class="months-day">
+              {{month.day}}
+            </tr>
+          </table>
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr id="bonds" v-for="bond in bondsArray"  class="bondsTr">
+        <td>
+          {{bond.name}}
+        </td>
+        <td>
+          {{bond.count}}
+        </td>
+        <td>
+          <table>
+            <tr>
+              <td v-for="value in valueArray" v-if="findedCoupon">
+                {{value.value}}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td>Total</td>
+        <td></td>
+        <td v-for="value in totalArray" class="total-value">
+            {{value.value}}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
+
+<!--let findedCoupon = data.allInfos.bondInfos[i].coupons.find(coupon=>{-->
+<!--return a[j] === coupon.date-->
+<!--});-->
+<!--if (findedCoupon){-->
+<!--bodyTrTdValue.innerText = findedCoupon.value;-->
+<!--yearSum += findedCoupon.value;-->
+<!--}-->
+
 <script>
-import { defineComponent } from 'vue';
+import {defineComponent, ref} from 'vue';
 export default defineComponent({
   setup(){
     let tmpl = {
       year : null,
     }
-    // let monthArray = []
+    const monthArray = ref([]);
+    const bondsArray = ref([]);
+    const valueArray = ref([]);
+    const totalArray = ref([]);
+    let findedCoupon = ref()
     async function sendData (){
       tmpl.year = document.getElementById("input").value
 
@@ -52,20 +91,38 @@ export default defineComponent({
         return response.json();
       })
           .then((data) => {
-            // monthArray = [
-            //   {day: tmpl.year + "-" + "01"},
-            //   {day: tmpl.year + "-" + "02"},
-            //   {day: tmpl.year + "-" + "03"},
-            //   {day: tmpl.year + "-" + "04"},
-            //   {day: tmpl.year + "-" + "05"},
-            //   {day: tmpl.year + "-" + "06"},
-            //   {day: tmpl.year + "-" + "07"},
-            //   {day: tmpl.year + "-" + "08"},
-            //   {day: tmpl.year + "-" + "09"},
-            //   {day: tmpl.year + "-" + "10"},
-            //   {day: tmpl.year + "-" + "11"},
-            //   {day: tmpl.year + "-" + "12"},
-            // ]
+            monthArray.value = [
+              {day: tmpl.year + "-" + "01"},
+              {day: tmpl.year + "-" + "02"},
+              {day: tmpl.year + "-" + "03"},
+              {day: tmpl.year + "-" + "04"},
+              {day: tmpl.year + "-" + "05"},
+              {day: tmpl.year + "-" + "06"},
+              {day: tmpl.year + "-" + "07"},
+              {day: tmpl.year + "-" + "08"},
+              {day: tmpl.year + "-" + "09"},
+              {day: tmpl.year + "-" + "10"},
+              {day: tmpl.year + "-" + "11"},
+              {day: tmpl.year + "-" + "12"},
+            ]
+
+            for (let i = 0; i < data.allInfos.bondInfos.length; i++ ){
+              console.log("data.allInfos.bondInfos[i].coupons.value: ",data.allInfos.bondInfos[i].coupons[i].value)
+              bondsArray.value.push({name: data.allInfos.bondInfos[i].bond.name, count: data.allInfos.bondInfos[i].bond.count})
+              for (let j = 0; j < monthArray.value.length; j++){
+                findedCoupon = data.allInfos.bondInfos[i].coupons.find(coupon=>{
+                  return monthArray[j] === coupon.date
+                })
+              }
+              for (let k = 0; k < data.allInfos.bondInfos[i].coupons.length; k++){
+                valueArray.value.push({value: data.allInfos.bondInfos[i].coupons[k].value})
+              }
+            }
+
+            for (let i = 0; i < data.allInfos.months.length; i++){
+              totalArray.value.push({value: data.allInfos.months[i].value.toFixed(2)})
+            }
+
             console.log(data);
             const div = document.createElement("div");
             const table = document.createElement("table");
@@ -194,7 +251,11 @@ export default defineComponent({
     return{
       tmpl,
       sendData,
-      // monthArray
+      monthArray,
+      bondsArray,
+      valueArray,
+      findedCoupon,
+      totalArray
     }
   }
 })
