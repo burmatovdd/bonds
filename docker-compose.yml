@@ -15,4 +15,15 @@ services:
       image: bonds
       ports:
         - 8080:8080
+      environment:
+        - MONGODB_CONNSTRING=mongodb://AzureDiamond:hunter2@mongodb
+    mongodb:
+      image: mongo:5.0
+      ports:
+        - 4000:27017
+      environment:
+        - MONGO_INITDB_ROOT_USERNAME=AzureDiamond
+        - MONGO_INITDB_ROOT_PASSWORD=hunter2
+      volumes:
+        - ./data:/data/db
 

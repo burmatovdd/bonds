@@ -18,4 +18,4 @@ CMD ["./bonds"]
 #DOCKER_BUILDKIT=0 docker build -f client/Dockerfile -t bonds-client .
 #-t name tag
 #docker run -p 8080:8080 bonds
-#
+#docker-compose up --build

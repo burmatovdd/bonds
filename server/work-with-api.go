@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
+	"net/http"
 	"strconv"
 )
 
@@ -28,7 +29,7 @@ func yearPost(c *gin.Context) {
 	}
 
 	test2 := TakeData(year)
-	c.JSON(200, struct {
+	c.JSON(http.StatusOK, struct {
 		AllInfos AllInfo `json:"allInfos"`
 	}{
 		test2.Coupons,

@@ -42,27 +42,27 @@
             </tr>
           </table>
         </td>
+        <td>
+          <button class="button" @click="deleteBond(bond)">Delete</button>
+        </td>
       </tr>
-      <tr>
+      <tr class="bondsTr">
         <td>Total</td>
         <td></td>
-        <td v-for="value in totalArray" class="total-value">
-            {{value.value}}
+        <td>
+          <table class="table-total">
+            <tr>
+              <td v-for="value in totalArray" class="total-value">
+                {{value.value}}
+              </td>
+            </tr>
+          </table>
         </td>
       </tr>
       </tbody>
     </table>
   </div>
 </template>
-
-
-<!--let findedCoupon = data.allInfos.bondInfos[i].coupons.find(coupon=>{-->
-<!--return a[j] === coupon.date-->
-<!--});-->
-<!--if (findedCoupon){-->
-<!--bodyTrTdValue.innerText = findedCoupon.value;-->
-<!--yearSum += findedCoupon.value;-->
-<!--}-->
 
 <script>
 import {defineComponent, ref} from 'vue';
@@ -71,11 +71,28 @@ export default defineComponent({
     let tmpl = {
       year : null,
     }
+    let bondName = {
+      name: null
+    }
     const monthArray = ref([]);
     const bondsArray = ref([]);
     const valueArray = ref([]);
     const totalArray = ref([]);
     let findedCoupon = ref()
+
+    async function deleteBond(bond) {
+      let sendUrl = "http://localhost:8080/year";
+      bondName.name = bond.name
+      console.log(bondName)
+      await fetch(sendUrl,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bondName)
+      })
+    }
+
     async function sendData (){
       tmpl.year = document.getElementById("input").value
 
@@ -107,7 +124,6 @@ export default defineComponent({
             ]
 
             for (let i = 0; i < data.allInfos.bondInfos.length; i++ ){
-              console.log("data.allInfos.bondInfos[i].coupons.value: ",data.allInfos.bondInfos[i].coupons[i].value)
               bondsArray.value.push({name: data.allInfos.bondInfos[i].bond.name, count: data.allInfos.bondInfos[i].bond.count})
               for (let j = 0; j < monthArray.value.length; j++){
                 findedCoupon = data.allInfos.bondInfos[i].coupons.find(coupon=>{
@@ -250,6 +266,7 @@ export default defineComponent({
     }
     return{
       tmpl,
+      deleteBond,
       sendData,
       monthArray,
       bondsArray,
