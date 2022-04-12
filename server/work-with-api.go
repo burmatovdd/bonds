@@ -11,14 +11,10 @@ import (
 )
 
 func yearPost(c *gin.Context) {
-	jsonData, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		fmt.Println("err: ", err)
-	}
-	//fmt.Println(string(jsonData))
 
 	yearMap := make(map[string]string)
-	err = json.Unmarshal(jsonData, &yearMap)
+
+	err := c.BindJSON(&yearMap)
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
@@ -68,6 +64,21 @@ func bondsPost(c *gin.Context) {
 	}
 }
 
+func delete(c *gin.Context) {
+	deleteMap := make(map[string]string)
+
+	err := c.BindJSON(&deleteMap)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
+
+	var name string
+	for _, value := range deleteMap {
+		name = string(value)
+	}
+	deleteBond(name)
+}
+
 func HandleRequest() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -77,6 +88,7 @@ func HandleRequest() {
 	}))
 	router.POST("/year", yearPost)
 	router.POST("/bonds", bondsPost)
+	router.POST("/delete", delete)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)

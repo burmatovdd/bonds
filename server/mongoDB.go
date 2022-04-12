@@ -18,6 +18,7 @@ func init() {
 	if value == "" {
 		value = "mongodb://localhost:27017"
 	}
+	// из docker-compose.yml  подставляем переменную
 	clientOptions := options.Client().ApplyURI(value)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
