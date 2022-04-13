@@ -4,64 +4,65 @@
     <div class="title">Enter Year</div>
     <input id="input" type="text" class="input">
     <button id="button" class="button" @click="sendData">Submit</button>
+    <div class="table-responsive">
+      <table class="bondsTable">
+        <thead>
+        <tr>
+          <th class="thName">Name</th>
+          <th class="thCount">Count</th>
+          <th class="thDate">
+            <table>
+              <tr>
+                <td colspan="12">Date</td>
+              </tr>
+            </table>
+            <table class="months">
+              <tr id="months" v-for="month in monthArray" :key="month.day" class="months-day">
+                {{month.day}}
+              </tr>
+            </table>
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr id="bonds" v-for="bond in bondsArray"  class="bondsTr">
+          <td>
+            {{bond.name}}
+          </td>
+          <td>
+            {{bond.count}}
+          </td>
+          <td>
+            <table>
+              <tr>
+                <td v-for="value in valueArray" v-if="findedCoupon">
+                  {{value.value}}
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td>
+            <button class="button" @click="deleteBond(bond)">Delete</button>
+          </td>
+        </tr>
+        <tr class="bondsTr">
+          <td>Total</td>
+          <td></td>
+          <td>
+            <table class="table-total">
+              <tr>
+                <td v-for="value in totalArray" class="total-value">
+                  {{value.value}}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <div class="table-responsive">
-    <table class="bondsTable">
-      <thead>
-      <tr>
-        <th class="thName">Name</th>
-        <th class="thCount">Count</th>
-        <th class="thDate">
-          <table>
-            <tr>
-              <td colspan="12">Date</td>
-            </tr>
-          </table>
-          <table class="months">
-            <tr id="months" v-for="month in monthArray" :key="month.day" class="months-day">
-              {{month.day}}
-            </tr>
-          </table>
-        </th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr id="bonds" v-for="bond in bondsArray"  class="bondsTr">
-        <td>
-          {{bond.name}}
-        </td>
-        <td>
-          {{bond.count}}
-        </td>
-        <td>
-          <table>
-            <tr>
-              <td v-for="value in valueArray" v-if="findedCoupon">
-                {{value.value}}
-              </td>
-            </tr>
-          </table>
-        </td>
-        <td>
-          <button class="button" @click="deleteBond(bond)">Delete</button>
-        </td>
-      </tr>
-      <tr class="bondsTr">
-        <td>Total</td>
-        <td></td>
-        <td>
-          <table class="table-total">
-            <tr>
-              <td v-for="value in totalArray" class="total-value">
-                {{value.value}}
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
+
 </template>
 
 <script>

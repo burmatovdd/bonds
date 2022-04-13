@@ -79,6 +79,41 @@ func delete(c *gin.Context) {
 	deleteBond(name)
 }
 
+func loginUser(c *gin.Context) {
+	loginMap := make(map[string]string)
+
+	err := c.BindJSON(&loginMap)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
+
+	var login string
+	var password string
+	login = loginMap["login"]
+	password = loginMap["password"]
+	fmt.Println("login: ", login)
+	fmt.Println("password: ", password)
+}
+
+func register(c *gin.Context) {
+	registerMap := make(map[string]string)
+
+	err := c.BindJSON(&registerMap)
+	if err != nil {
+		fmt.Println("err: ", err)
+	}
+
+	var name string
+	var login string
+	var password string
+	name = registerMap["name"]
+	login = registerMap["login"]
+	password = registerMap["password"]
+	fmt.Println("name: ", name)
+	fmt.Println("login: ", login)
+	fmt.Println("password: ", password)
+}
+
 func HandleRequest() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -89,6 +124,8 @@ func HandleRequest() {
 	router.POST("/year", yearPost)
 	router.POST("/bonds", bondsPost)
 	router.POST("/delete", delete)
+	router.POST("/login", loginUser)
+	router.POST("/register", register)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)
