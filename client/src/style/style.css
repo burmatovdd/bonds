@@ -1,12 +1,24 @@
-body{
-    margin: 0;
-    padding: 0;
-    background-color: #090D2E;
-}
-.container{
-    max-width: 500px;
-    margin: 40px auto;
-    display: flex;
-    flex-direction: column;
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #090d2e;
 }
 
+*,
+::before,
+::after {
+	box-sizing: border-box;
+}
+
+.container {
+	padding: 0 1rem;
+	width: 100%;
+	max-width: 1920px;
+	margin: 40px auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.table-responsive {
+	overflow-x: scroll;
+}

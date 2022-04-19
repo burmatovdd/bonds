@@ -1,165 +1,285 @@
-
 <template>
-  <div class="container">
-    <div class="title">Enter Year</div>
-    <input id="input" type="text" class="input">
-    <button id="button" class="button" @click="sendData">Submit</button>
-    <div class="table-responsive">
-      <table class="bondsTable">
-        <thead>
-        <tr>
-          <th class="thName">Name</th>
-          <th class="thCount">Count</th>
-          <th class="thDate">
-            <table>
-              <tr>
-                <td colspan="12">Date</td>
-              </tr>
-            </table>
-            <table class="months">
-              <tr id="months" v-for="month in monthArray" :key="month.day" class="months-day">
-                {{month.day}}
-              </tr>
-            </table>
-          </th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr id="bonds" v-for="bond in bondsArray"  class="bondsTr">
-          <td>
-            {{bond.name}}
-          </td>
-          <td>
-            {{bond.count}}
-          </td>
-          <td>
-            <table>
-              <tr>
-                <td v-for="value in valueArray" v-if="findedCoupon">
-                  {{value.value}}
-                </td>
-              </tr>
-            </table>
-          </td>
-          <td>
-            <button class="button" @click="deleteBond(bond)">Delete</button>
-          </td>
-        </tr>
-        <tr class="bondsTr">
-          <td>Total</td>
-          <td></td>
-          <td>
-            <table class="table-total">
-              <tr>
-                <td v-for="value in totalArray" class="total-value">
-                  {{value.value}}
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+	<div class="container">
+		<div class="title">Enter Year</div>
+		<input id="input" type="number" class="input" ref="yearInput" />
+		<button id="button" class="button" @click="send">Submit</button>
+		<div class="table-responsive">
+			<table class="bondsTable">
+				<caption align="bottom">
+					ИТОГО:
+					{{
+						total
+					}}
+				</caption>
+				<thead>
+					<tr>
+						<th class="thName">Name</th>
+						<th class="thCount">Count</th>
+						<th class="thDate" :colspan="months.length">Date</th>
+					</tr>
+					<tr v-if="months.length !== 0">
+						<th colspan="2" class="empty"></th>
+						<th>
+							<table class="months">
+								<tr id="months" class="months-day">
+									<th v-for="month in months" :key="month">
+										{{ month }}
+									</th>
+								</tr>
+							</table>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr :key="bond.name" id="bonds" v-for="bond in response.bonds" class="bondsTr">
+						<td>
+							{{ bond.name }}
+						</td>
+						<td>
+							{{ bond.count }}
+						</td>
+						<td>
+							<table style="width: 100%; table-layout: fixed">
+								<tr>
+									<template v-for="month in months">
+										<td
+											:key="`${month}-if`"
+											v-if="bond.coupons.find((coupon) => month === coupon.date)"
+										>
+											{{ bond.coupons.find((coupon) => month === coupon.date).value }}
+										</td>
 
+										<td :key="`${month}-else`" v-else></td>
+									</template>
+								</tr>
+							</table>
+						</td>
+						<td>
+							<button class="button" @click="_delete(bond)">Delete</button>
+						</td>
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr>
+						<td></td>
+						<td>Total:</td>
+						<td>
+							<table style="width: 100%; table-layout: fixed">
+								<tr>
+									<template v-for="month in months">
+										<td :key="`${month}-if`" v-if="monthTotal(month) !== 0">
+											{{ monthTotal(month) }}
+										</td>
+										<td :key="`${month}-else`" v-else></td>
+									</template>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</div>
 </template>
 
 <script>
-import {defineComponent, ref} from 'vue';
+import { defineComponent, ref } from "vue";
 export default defineComponent({
-  setup(){
-    let tmpl = {
-      year : null,
-    }
-    let bondName = {
-      name: null
-    }
-    const monthArray = ref([]);
-    const bondsArray = ref([]);
-    const valueArray = ref([]);
-    const totalArray = ref([]);
-    let findedCoupon = ref()
+	setup() {
+		const yearInput = ref();
 
-    async function deleteBond(bond) {
-      let sendUrl = "http://localhost:8080/delete";
-      bondName.name = bond.name
-      for (let i = 0; i < bondsArray.value.length; i++){
-        if (bondsArray.value[i].name === bondName.name){
-          bondsArray.value.splice(i,1)
-        }
-      }
-      await fetch(sendUrl,{
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bondName)
-      })
-    }
+		return {
+			yearInput,
+		};
+	},
+	data() {
+		return {
+			months: [],
+			response: {
+				bonds: [],
+				months: [],
+			},
+		};
+	},
+	computed: {
+		total() {
+			if (this.$data.response) {
+				const total = this.$data.response.bonds.reduce((accumulator, bond) => {
+					return (
+						accumulator +
+						bond.coupons.reduce((accumulator, coupon) => {
+							return accumulator + coupon.value;
+						}, 0)
+					);
+				}, 0);
 
-    async function sendData (){
-      tmpl.year = document.getElementById("input").value
+				return total.toFixed(2);
+			}
 
-      let sendUrl = "http://localhost:8080/year";
+			return 0;
+		},
+	},
+	methods: {
+		monthTotal(month) {
+			const total = this.$data.response.bonds.reduce((accumulator, bond) => {
+				return (
+					accumulator +
+					bond.coupons.reduce((accumulator, coupon) => {
+						return coupon.date === month ? accumulator + coupon.value : accumulator;
+					}, 0)
+				);
+			}, 0);
+			return total;
+		},
+		async _delete(bond, url = "http://localhost:8080/delete") {
+			this.$data.response.bonds = this.$data.response.bonds.filter((bondObj) => bondObj.name !== bond.name);
 
-      await fetch(sendUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(tmpl)
-      }).then((response) => {
-        return response.json();
-      })
-          .then((data) => {
-            monthArray.value = [
-              {day: tmpl.year + "-" + "01"},
-              {day: tmpl.year + "-" + "02"},
-              {day: tmpl.year + "-" + "03"},
-              {day: tmpl.year + "-" + "04"},
-              {day: tmpl.year + "-" + "05"},
-              {day: tmpl.year + "-" + "06"},
-              {day: tmpl.year + "-" + "07"},
-              {day: tmpl.year + "-" + "08"},
-              {day: tmpl.year + "-" + "09"},
-              {day: tmpl.year + "-" + "10"},
-              {day: tmpl.year + "-" + "11"},
-              {day: tmpl.year + "-" + "12"},
-            ]
+			// await fetch(url, {
+			// 	method: "POST",
+			// 	headers: {
+			// 		"Content-Type": "application/json",
+			// 	},
+			// 	body: JSON.stringify(bond.name),
+			// });
+		},
 
-            for (let i = 0; i < data.allInfos.bondInfos.length; i++ ){
-              bondsArray.value.push({name: data.allInfos.bondInfos[i].bond.name, count: data.allInfos.bondInfos[i].bond.count})
-              for (let j = 0; j < monthArray.value.length; j++){
-                findedCoupon = data.allInfos.bondInfos[i].coupons.find(coupon=>{
-                  return monthArray[j] === coupon.date
-                })
-              }
-              for (let k = 0; k < data.allInfos.bondInfos[i].coupons.length; k++){
-                valueArray.value.push({value: data.allInfos.bondInfos[i].coupons[k].value})
-              }
-            }
+		async send(url = "http://localhost:8080/year") {
+			// await fetch(url, {
+			// 	method: "POST",
+			// 	headers: {
+			// 		"Content-Type": "application/json",
+			// 	},
+			// 	body: JSON.stringify(tmpl),
+			// })
+			// 	.then((response) => {
+			// 		return response.json();
+			// 	})
+			// 	.then((data) => {
+			// 		this.$data.response = data;
+			// 	})
+			// 	.catch(console.error);
+			this.$data.response = {
+				bonds: [
+					{
+						name: "RU000A104FG2",
+						count: 2,
+						coupons: [
+							{
+								date: "2022-04",
+								value: 54.36,
+							},
+							{
+								date: "2022-07",
+								value: 54.36,
+							},
+							{
+								date: "2022-10",
+								value: 54.36,
+							},
+						],
+					},
+					{
+						name: "RU000A1040V2",
+						count: 2,
+						coupons: [
+							{
+								date: "2022-02",
+								value: 62.32,
+							},
+							{
+								date: "2022-05",
+								value: 62.32,
+							},
+							{
+								date: "2022-08",
+								value: 62.32,
+							},
+							{
+								date: "2022-11",
+								value: 62.32,
+							},
+						],
+					},
+					{
+						name: "RU000A104CJ3",
+						count: 5,
+						coupons: [
+							{
+								date: "2022-03",
+								value: 152.7,
+							},
+							{
+								date: "2022-06",
+								value: 152.7,
+							},
+							{
+								date: "2022-09",
+								value: 152.7,
+							},
+							{
+								date: "2022-12",
+								value: 152.7,
+							},
+						],
+					},
+				],
+				months: [
+					{
+						date: "02",
+						value: 62.32,
+					},
+					{
+						date: "03",
+						value: 152.7,
+					},
+					{
+						date: "04",
+						value: 54.36,
+					},
+					{
+						date: "05",
+						value: 62.32,
+					},
+					{
+						date: "06",
+						value: 152.7,
+					},
+					{
+						date: "07",
+						value: 54.36,
+					},
+					{
+						date: "08",
+						value: 62.32,
+					},
+					{
+						date: "09",
+						value: 152.7,
+					},
+					{
+						date: "10",
+						value: 54.36,
+					},
+					{
+						date: "11",
+						value: 62.32,
+					},
+					{
+						date: "12",
+						value: 152.7,
+					},
+				],
+			};
 
-            for (let i = 0; i < data.allInfos.months.length; i++){
-              totalArray.value.push({value: data.allInfos.months[i].value.toFixed(2)})
-            }
+			this.$data.months.length = 0; // Clear months array every time we click send button
+			const year = this.$refs.yearInput.value;
 
-            console.log(data);
-
-          }).catch(console.error);
-    }
-    return{
-      tmpl,
-      deleteBond,
-      sendData,
-      monthArray,
-      bondsArray,
-      valueArray,
-      findedCoupon,
-      totalArray
-    }
-  }
-})
+			for (let i = 1; i <= 12; i++) {
+				this.$data.months.push(`${year}-${i <= 9 ? `0${i}` : i}`);
+			}
+		},
+	},
+});
 </script>
 
 <style lang="css">
