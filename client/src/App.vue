@@ -1,16 +1,16 @@
 <script setup>
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import InputYear from './components/inputYear/inputYear.vue'
-import HeaderComponent from './components/header/header.vue'
+
 import Login from './components/login/login.vue'
+import InputYear from './components/inputYear/inputYear.vue'
+import Header from './components/header/header.vue'
 </script>
 
 <template>
-  <HeaderComponent/>
-  <img alt="Vue logo" src="./assets/duck.png" />
-  <InputYear/>
-<!--  <Login/>-->
+<!--  <Header/>-->
+<!--  <Input-year/>-->
+  <Login/>
 </template>
 
 <style>

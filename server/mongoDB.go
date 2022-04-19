@@ -34,7 +34,7 @@ func init() {
 
 }
 
-func addToDB(bondInfo Bond) {
+func addBondToDB(bondInfo Bond) {
 	res := getBond(bondInfo.Name)
 	if res.Name != bondInfo.Name {
 		_, err := collection.InsertOne(ctx, bondInfo)
@@ -59,6 +59,54 @@ func addToDB(bondInfo Bond) {
 	}
 }
 
+func addUserToDB(user User) {
+	res := findUserInDB(user.Login)
+	if res.Login != user.Login {
+		_, err := collection.InsertOne(context.TODO(), user)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		fmt.Println("user already exist!")
+	}
+}
+
+func findUserInDB(login string) User {
+	var result User
+
+	filter := bson.D{{"login", login}}
+
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+	}
+	return result
+}
+
+func getAllUsers() []User {
+	findOptions := options.Find()
+	var results []User
+
+	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
+
+	for cur.Next(context.TODO()) {
+		var elem User
+		err := cur.Decode(&elem)
+		results = append(results, elem)
+		if err != nil {
+			fmt.Println("cur.Next err: ", err)
+		}
+
+	}
+
+	if err = cur.Err(); err != nil {
+		fmt.Println("cur.Err: ", err)
+	}
+
+	// Close the cursor once finished
+	cur.Close(context.TODO())
+	return results
+}
+
 func getBond(name string) Bond {
 	var result Bond
 
@@ -72,7 +120,7 @@ func getBond(name string) Bond {
 
 func getAllBonds() []Bond {
 	findOptions := options.Find()
-	var results []Bond
+	results := []Bond{}
 
 	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
 

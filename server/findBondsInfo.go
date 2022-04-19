@@ -132,6 +132,7 @@ func TakeData(year string) Test {
 	tmpl := Test{
 		allInfo,
 	}
+	fmt.Println(allInfo)
 
 	return tmpl
 }

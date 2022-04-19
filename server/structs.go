@@ -23,6 +23,17 @@ type AllInfo struct {
 	Months   []Months   `json:"months"`
 }
 
+type User struct {
+	Name     string     `json:"name"`
+	Login    string     `json:"login"`
+	Password string     `json:"password"`
+	BondInfo []BondInfo `json:"bondInfos"`
+}
+
+type Response struct {
+	Value bool `json:"value"`
+}
+
 type BondInfo struct {
 	Bond    Bond     `json:"bond"`
 	Coupons []Coupon `json:"coupons"`

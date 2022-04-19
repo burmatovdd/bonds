@@ -37,7 +37,6 @@ func bondsPost(c *gin.Context) {
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
-	//fmt.Println(string(jsonData))
 
 	bondsMap := make(map[string]string)
 	err = json.Unmarshal(jsonData, &bondsMap)
@@ -45,7 +44,6 @@ func bondsPost(c *gin.Context) {
 		fmt.Println("err: ", err)
 	}
 
-	//fmt.Println("bondsMap: ", bondsMap)
 	var bond string
 	var count float64
 	for i := 1; i < len(bondsMap); i++ {
@@ -59,7 +57,7 @@ func bondsPost(c *gin.Context) {
 			bonds[i].Name,
 			bonds[i].Count,
 		}
-		addToDB(bondInfo)
+		addBondToDB(bondInfo)
 		//deleteBond(bondInfo.Name)
 	}
 }
@@ -91,8 +89,52 @@ func loginUser(c *gin.Context) {
 	var password string
 	login = loginMap["login"]
 	password = loginMap["password"]
-	fmt.Println("login: ", login)
-	fmt.Println("password: ", password)
+	users := getAllUsers()
+	//cap - длина для срезов
+	if cap(users) == 0 {
+		c.JSON(http.StatusOK, struct {
+			Response Response `json:"response"`
+		}{
+			Response{
+				false,
+			},
+		})
+	}
+
+	for i := 0; i < len(users); i++ {
+		if users[i].Login == login {
+			fmt.Println("find login")
+			if users[i].Password == password {
+				fmt.Println("find password")
+				c.JSON(http.StatusOK, struct {
+					Response Response `json:"response"`
+				}{
+					Response{
+						true,
+					},
+				})
+				break
+			} else {
+				c.JSON(http.StatusOK, struct {
+					Response Response `json:"response"`
+				}{
+					Response{
+						false,
+					},
+				})
+				break
+			}
+		} else {
+			c.JSON(http.StatusOK, struct {
+				Response Response `json:"response"`
+			}{
+				Response{
+					false,
+				},
+			})
+			break
+		}
+	}
 }
 
 func register(c *gin.Context) {
@@ -112,6 +154,13 @@ func register(c *gin.Context) {
 	fmt.Println("name: ", name)
 	fmt.Println("login: ", login)
 	fmt.Println("password: ", password)
+	var userInfo = User{
+		name,
+		login,
+		password,
+		[]BondInfo{},
+	}
+	addUserToDB(userInfo)
 }
 
 func HandleRequest() {
