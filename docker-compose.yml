@@ -1,29 +1,28 @@
-version: '3.7'
+version: "3.7"
 
 services:
     web:
         build:
-          context: .
-          dockerfile: client/Dockerfile
+            context: .
+            dockerfile: client/Dockerfile
         image: bonds-client
         ports:
             - 3000:80
     back:
-      build:
-        context: .
-        dockerfile: Dockerfile
-      image: bonds
-      ports:
-        - 8080:8080
-      environment:
-        - MONGODB_CONNSTRING=mongodb://AzureDiamond:hunter2@mongodb
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: bonds
+        ports:
+            - 1234:8080
+        environment:
+            - MONGODB_CONNSTRING=mongodb://AzureDiamond:hunter2@mongodb
     mongodb:
-      image: mongo:5.0
-      ports:
-        - 4000:27017
-      environment:
-        - MONGO_INITDB_ROOT_USERNAME=AzureDiamond
-        - MONGO_INITDB_ROOT_PASSWORD=hunter2
-      volumes:
-        - ./data:/data/db
-
+        image: mongo:5.0
+        ports:
+            - 4321:27017
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=AzureDiamond
+            - MONGO_INITDB_ROOT_PASSWORD=hunter2
+        volumes:
+            - ./data:/data/db
