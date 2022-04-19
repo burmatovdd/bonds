@@ -1,46 +1,67 @@
-.title{
-  color: white;
-  font-size: 32px;
-  margin: 0 auto;
-  max-width: 150px;
+.title {
+	color: white;
+	font-size: 32px;
+	margin: 0 auto;
+	max-width: 150px;
 }
-.input{
-  padding: 10px 0 10px 20px;
-  border-radius: 16px;
-  max-width: 200px;
-  margin: 10px auto 20px;
+.input {
+	padding: 10px 0 10px 10px;
+	border-radius: 16px;
+	max-width: 200px;
+	margin: 10px auto 10px;
 }
-.button{
-  color: black;
-  margin: 0 auto;
-  border-radius: 8px;
-  background-color: lightblue;
-  max-width: 200px;
-  width: 100%;
-  border: none;
-}
-
-.form{
-  display: flex;
-  flex-direction: column;
-  margin-top: 20px;
+.button {
+	color: black;
+	margin: 0 auto;
+	border-radius: 8px;
+	background-color: lightblue;
+	max-width: 200px;
+	width: 100%;
+	border: none;
 }
 
-.tmpl{
-  color: white;
-}
-.bondsTable{
-  display: block;
-  color: white;
-  width: 100%;
+.form {
+	display: flex;
+	flex-direction: column;
+	margin-top: 10px;
 }
 
-.months{
-  display: flex;
+.tmpl {
+	color: white;
 }
-.months-day{
-  width: 90px;
+.bondsTable {
+	/* display: block; */
+	color: white;
+	min-width: 100%;
 }
-.total-value{
-  width: 80px;
+
+.months {
+	min-width: 100%;
+	table-layout: fixed;
+}
+/* .months-day {
+	width: 90px;
+} */
+.total-value {
+	width: 80px;
+}
+
+th,
+td {
+	padding: 0.125rem;
+}
+
+.bondsTable > tbody > tr:nth-child(odd) td {
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
+.empty {
+	background: linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px,
+		linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px,
+		linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px,
+		linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px,
+		linear-gradient(90deg, #1b1b1b 10px, transparent 10px),
+		linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424);
+	background-color: #131313;
+	background-size: 20px 20px;
 }
