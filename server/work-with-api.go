@@ -6,12 +6,14 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
+	helper "modules/helpers"
+	"modules/middleware"
 	"net/http"
 	"strconv"
 )
 
 func yearPost(c *gin.Context) {
-
+	fmt.Println("start")
 	yearMap := make(map[string]string)
 
 	err := c.BindJSON(&yearMap)
@@ -19,17 +21,22 @@ func yearPost(c *gin.Context) {
 		fmt.Println("err: ", err)
 	}
 
-	var year string
-	for _, value := range yearMap {
-		year = string(value)
+	id := c.GetString("uid")
+
+	res := findUserInDBById(id)
+	if res.User_id == id {
+		fmt.Println("user find! ")
+		fmt.Println("year: ", yearMap["year"])
+		test2 := TakeData(yearMap["year"], res.Bond)
+		c.JSON(http.StatusOK, struct {
+			AllInfos AllInfo `json:"allInfos"`
+		}{
+			test2.Coupons,
+		})
+	} else {
+		fmt.Println("need to login")
 	}
 
-	test2 := TakeData(year)
-	c.JSON(http.StatusOK, struct {
-		AllInfos AllInfo `json:"allInfos"`
-	}{
-		test2.Coupons,
-	})
 }
 
 func bondsPost(c *gin.Context) {
@@ -37,31 +44,26 @@ func bondsPost(c *gin.Context) {
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
-	//fmt.Println(string(jsonData))
 
 	bondsMap := make(map[string]string)
 	err = json.Unmarshal(jsonData, &bondsMap)
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
+	id := c.GetString("uid")
 
-	//fmt.Println("bondsMap: ", bondsMap)
-	var bond string
-	var count float64
-	for i := 1; i < len(bondsMap); i++ {
-		bond = bondsMap["bond"]
-		count, _ = strconv.ParseFloat(bondsMap["count"], 64)
-		bonds = append(bonds, Bond{Name: bond, Count: count})
+	res := findUserInDBById(id)
+	if res.User_id == id {
+		fmt.Println("user find! ")
+		count, _ := strconv.ParseFloat(bondsMap["count"], 64)
+
+		fmt.Println("array: ", res.Bond)
+		res.Bond = append(res.Bond, Bond{bondsMap["bond"], count})
+		addBondToUserInDB(id, res.Bond)
+	} else {
+		fmt.Println("need to login")
 	}
 
-	for i := 0; i < len(bonds); i++ {
-		var bondInfo = Bond{
-			bonds[i].Name,
-			bonds[i].Count,
-		}
-		addToDB(bondInfo)
-		//deleteBond(bondInfo.Name)
-	}
 }
 
 func delete(c *gin.Context) {
@@ -80,6 +82,7 @@ func delete(c *gin.Context) {
 }
 
 func loginUser(c *gin.Context) {
+	var userToken UserToken
 	loginMap := make(map[string]string)
 
 	err := c.BindJSON(&loginMap)
@@ -87,31 +90,55 @@ func loginUser(c *gin.Context) {
 		fmt.Println("err: ", err)
 	}
 
-	var login string
-	var password string
-	login = loginMap["login"]
-	password = loginMap["password"]
-	fmt.Println("login: ", login)
-	fmt.Println("password: ", password)
+	res := findUserInDB(loginMap["login"])
+
+	result := res.Login == loginMap["login"] && res.Password == hashPassword(loginMap["password"])
+
+	if result == true {
+		userToken.Token, userToken.Refresh_token, _ = helper.GenerateAllTokens(res.Login, res.Name, res.User_type, res.User_id)
+		fmt.Println("login token: ", userToken.Token)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": result,
+		"token":    userToken,
+	})
 }
 
 func register(c *gin.Context) {
+	var user User
+	var userToken UserToken
+
 	registerMap := make(map[string]string)
 
 	err := c.BindJSON(&registerMap)
+
 	if err != nil {
-		fmt.Println("err: ", err)
+		fmt.Println("err: ", err.Error())
 	}
 
-	var name string
-	var login string
-	var password string
-	name = registerMap["name"]
-	login = registerMap["login"]
-	password = registerMap["password"]
-	fmt.Println("name: ", name)
-	fmt.Println("login: ", login)
-	fmt.Println("password: ", password)
+	name := registerMap["name"]
+	login := registerMap["login"]
+	password := hashPassword(registerMap["password"])
+	user.ID = generateId()
+	user.User_type = "Admin"
+	user.User_id = user.ID.Hex()
+	userToken.Token, userToken.Refresh_token, _ = helper.GenerateAllTokens(login, name, user.User_type, user.User_id)
+
+	var userInfo = User{
+		user.ID,
+		name,
+		password,
+		login,
+		user.User_id,
+		user.User_type,
+		[]Bond{},
+	}
+	res := addUserToDB(userInfo)
+	c.JSON(http.StatusOK, gin.H{
+		"token": userToken,
+		"res":   res,
+	})
 }
 
 func HandleRequest() {
@@ -119,12 +146,13 @@ func HandleRequest() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
-		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers"},
+		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
+	router.POST("/login", loginUser)
+	router.Use(middleware.Middleware1())
 	router.POST("/year", yearPost)
 	router.POST("/bonds", bondsPost)
 	router.POST("/delete", delete)
-	router.POST("/login", loginUser)
 	router.POST("/register", register)
 	err := router.Run(":8080")
 	if err != nil {

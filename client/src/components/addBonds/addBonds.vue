@@ -10,12 +10,21 @@
 
 <script>
 import { defineComponent } from 'vue';
+import *as storage from "../../storage";
+import { useRouter, useRoute } from 'vue-router'
+
+
 export default defineComponent({
   name: "addBonds",
   setup(){
+      const router = useRouter();
     let bonds = {
       bond: null,
       count: null,
+    }
+    let token = storage.get("token");
+    if (token == null){
+        router.push("/");
     }
     async function sendBond() {
       bonds.bond = document.getElementById("inputBond").value;
@@ -26,6 +35,7 @@ export default defineComponent({
       await fetch(sendUrl, {
         method: 'POST',
         headers: {
+            'Authorization': token,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(bonds)

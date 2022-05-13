@@ -1,12 +1,19 @@
-.register{
+.register {
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
-.register-item{
+
+.register-item {
     border: none;
     padding: 10px 0 10px 20px;
     border-radius: 16px;
-    max-width: 200px;
     margin: 10px auto 20px;
+}
+
+.error-message_register {
+    margin: 0 auto;
+    width: 180px;
+    font-size: 10px;
+    color: red;
 }

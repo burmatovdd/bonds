@@ -14,13 +14,10 @@ import (
 
 var data []Row
 
-var bonds = []Bond{}
-
-func TakeData(year string) Test {
+func TakeData(year string, bonds []Bond) Test {
 	monthDict := make(map[string]float64)
 	var bondInfos []BondInfo
 	var yearSum float64
-	bonds = getAllBonds()
 
 	for i := 0; i < len(bonds); i++ {
 		var bondInfo = BondInfo{
@@ -72,8 +69,11 @@ func TakeData(year string) Test {
 			value, _ := strconv.ParseFloat(dict[idx]["value"], 64)
 
 			if year != "any" {
+				fmt.Println("year: ", year)
+				fmt.Println("date: ", date)
 				if date == year {
 					if month != "" {
+						fmt.Println("i 'm here")
 						value = math.Round((value*bonds[i].Count)*100) / 100
 						yearSum = math.Round((yearSum+value)*100) / 100
 						fmt.Println(bonds[i].Name+"|", value, "|"+"  ", bonds[i].Count, "  |", dict[idx]["date"])
@@ -121,6 +121,7 @@ func TakeData(year string) Test {
 		monthInfos = append(monthInfos, monthInfo)
 	}
 
+	fmt.Println("bondInfos: ", bondInfos)
 	//var allInfos []AllInfo
 	var allInfo = AllInfo{
 		bondInfos,
@@ -132,6 +133,7 @@ func TakeData(year string) Test {
 	tmpl := Test{
 		allInfo,
 	}
+	fmt.Println(allInfo)
 
 	return tmpl
 }

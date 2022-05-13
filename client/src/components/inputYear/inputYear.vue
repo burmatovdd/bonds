@@ -31,12 +31,12 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr :key="bond.name" id="bonds" v-for="bond in response.bonds" class="bondsTr">
+					<tr :key="item.name" id="bonds" v-for="item in response.allInfos.bondInfos" class="bondsTr">
 						<td>
-							{{ bond.name }}
+							{{ item.bond.name }}
 						</td>
 						<td>
-							{{ bond.count }}
+							{{ item.bond.count }}
 						</td>
 						<td>
 							<table style="width: 100%; table-layout: fixed">
@@ -44,9 +44,9 @@
 									<template v-for="month in months">
 										<td
 											:key="`${month}-if`"
-											v-if="bond.coupons.find((coupon) => month === coupon.date)"
+											v-if="item.coupons.find((coupon) => month === coupon.date)"
 										>
-											{{ bond.coupons.find((coupon) => month === coupon.date).value }}
+											{{ item.coupons.find((coupon) => month === coupon.date).value }}
 										</td>
 
 										<td :key="`${month}-else`" v-else></td>
@@ -55,7 +55,7 @@
 							</table>
 						</td>
 						<td>
-							<button class="button" @click="_delete(bond)">Delete</button>
+							<button class="button" @click="_delete(item)">Delete</button>
 						</td>
 					</tr>
 				</tbody>
@@ -84,6 +84,9 @@
 
 <script>
 import { defineComponent, ref } from "vue";
+import *as storage from "../../storage";
+
+
 export default defineComponent({
 	setup() {
 		const yearInput = ref();
@@ -96,15 +99,17 @@ export default defineComponent({
 		return {
 			months: [],
 			response: {
-				bonds: [],
-				months: [],
+                allInfos: {
+                    bondInfos: [],
+                    months: [],
+                },
 			},
 		};
 	},
 	computed: {
 		total() {
 			if (this.$data.response) {
-				const total = this.$data.response.bonds.reduce((accumulator, bond) => {
+				const total = this.$data.response.allInfos.bondInfos.reduce((accumulator, bond) => {
 					return (
 						accumulator +
 						bond.coupons.reduce((accumulator, coupon) => {
@@ -121,7 +126,7 @@ export default defineComponent({
 	},
 	methods: {
 		monthTotal(month) {
-			const total = this.$data.response.bonds.reduce((accumulator, bond) => {
+			const total = this.$data.response.allInfos.bondInfos.reduce((accumulator, bond) => {
 				return (
 					accumulator +
 					bond.coupons.reduce((accumulator, coupon) => {
@@ -129,10 +134,10 @@ export default defineComponent({
 					}, 0)
 				);
 			}, 0);
-			return total;
+            return total.toFixed(2);
 		},
 		async _delete(bond, url = "http://localhost:8080/delete") {
-			this.$data.response.bonds = this.$data.response.bonds.filter((bondObj) => bondObj.name !== bond.name);
+            this.$data.response.allInfos.bondInfos = this.$data.response.allInfos.bondInfos.filter((bondObj) => bondObj.name !== bond.name);
 
 			// await fetch(url, {
 			// 	method: "POST",
@@ -143,140 +148,39 @@ export default defineComponent({
 			// });
 		},
 
-		async send(url = "http://localhost:8080/year") {
-			// await fetch(url, {
-			// 	method: "POST",
-			// 	headers: {
-			// 		"Content-Type": "application/json",
-			// 	},
-			// 	body: JSON.stringify(tmpl),
-			// })
-			// 	.then((response) => {
-			// 		return response.json();
-			// 	})
-			// 	.then((data) => {
-			// 		this.$data.response = data;
-			// 	})
-			// 	.catch(console.error);
-			this.$data.response = {
-				bonds: [
-					{
-						name: "RU000A104FG2",
-						count: 2,
-						coupons: [
-							{
-								date: "2022-04",
-								value: 54.36,
-							},
-							{
-								date: "2022-07",
-								value: 54.36,
-							},
-							{
-								date: "2022-10",
-								value: 54.36,
-							},
-						],
-					},
-					{
-						name: "RU000A1040V2",
-						count: 2,
-						coupons: [
-							{
-								date: "2022-02",
-								value: 62.32,
-							},
-							{
-								date: "2022-05",
-								value: 62.32,
-							},
-							{
-								date: "2022-08",
-								value: 62.32,
-							},
-							{
-								date: "2022-11",
-								value: 62.32,
-							},
-						],
-					},
-					{
-						name: "RU000A104CJ3",
-						count: 5,
-						coupons: [
-							{
-								date: "2022-03",
-								value: 152.7,
-							},
-							{
-								date: "2022-06",
-								value: 152.7,
-							},
-							{
-								date: "2022-09",
-								value: 152.7,
-							},
-							{
-								date: "2022-12",
-								value: 152.7,
-							},
-						],
-					},
-				],
-				months: [
-					{
-						date: "02",
-						value: 62.32,
-					},
-					{
-						date: "03",
-						value: 152.7,
-					},
-					{
-						date: "04",
-						value: 54.36,
-					},
-					{
-						date: "05",
-						value: 62.32,
-					},
-					{
-						date: "06",
-						value: 152.7,
-					},
-					{
-						date: "07",
-						value: 54.36,
-					},
-					{
-						date: "08",
-						value: 62.32,
-					},
-					{
-						date: "09",
-						value: 152.7,
-					},
-					{
-						date: "10",
-						value: 54.36,
-					},
-					{
-						date: "11",
-						value: 62.32,
-					},
-					{
-						date: "12",
-						value: 152.7,
-					},
-				],
-			};
+		async send() {
+            this.$data.months.length = 0; // Clear months array every time we click send button
+            const year = this.$refs.yearInput.value;
 
-			this.$data.months.length = 0; // Clear months array every time we click send button
-			const year = this.$refs.yearInput.value;
+            for (let i = 1; i <= 12; i++) {
+                this.$data.months.push(`${year}-${i <= 9 ? `0${i}` : i}`);
+            }
+            let token = storage.get("token");
+             if (!token){
+                 this.$router.push("/");
+                 return Promise.resolve();
+             }
 
-			for (let i = 1; i <= 12; i++) {
-				this.$data.months.push(`${year}-${i <= 9 ? `0${i}` : i}`);
-			}
+			await fetch("http://localhost:8080/year", {
+				method: "POST",
+				headers: {
+                    'Authorization': token,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({year: this.$refs.yearInput.value}),
+			})
+				.then((response) => {
+					return response.json();
+				})
+				.then((data) => {
+					this.$data.response = data;
+                    console.log("data: ", data)
+                    console.log("this.$data.response: ", this.$data.response)
+                    console.log("this.$data.response.allInfos: ", this.$data.response.allInfos)
+                    console.log("this.$data.response.allInfos.bondinfos: ", this.$data.response.allInfos.bondInfos)
+				})
+				.catch(console.error);
+
 		},
 	},
 });
