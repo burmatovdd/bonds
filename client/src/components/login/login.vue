@@ -1,5 +1,6 @@
 <template>
     <div class="container container-login">
+        <h1>Welcome to Amenophis</h1>
         <div class="login">
             <Form @submit="onSubmit" class="form" v-slot="{ meta }">
                 <Field name="login"
@@ -33,6 +34,10 @@
                 <button class="button" @click="register">close</button>
             </div>
         </div>
+        .<footer>
+        <p>
+            Amenophis is a learning project that aims to teach you how to start your own project from scratch. In the future, the project will develop.</p>
+    </footer>
     </div>
 
 </template>
@@ -42,6 +47,8 @@ import {defineComponent} from 'vue';
 import {Form, Field, ErrorMessage} from 'vee-validate';
 import Overlay from "../register/overlay.vue";
 import *as storage from "../../storage";
+import *as httpClient from "../../httpClient";
+
 
 export default defineComponent({
     name: "login",
@@ -67,7 +74,6 @@ export default defineComponent({
             this.isActive = !this.isActive;
         },
         onSubmit(values) {
-            console.log("onSubmit: ", values);
             this.user.login = values.login;
             this.user.password = values.password;
         },
@@ -107,27 +113,18 @@ export default defineComponent({
 
             let sendUrl = "http://localhost:8080/login";
 
-            await fetch(sendUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(this.user)
-            }).then((response) => {
-                console.log(response)
-                return response.json();
-            })
-                .then((data) => {
-                    console.log("data: ",data)
-                    if (data.response === true) {
-                        console.log("user find")
-                        storage.set("token",data.token.token);
-                    } else {
-                        console.log("invalid username or password")
-                    }
-                    console.log(this.$router)
-                    this.$router.push('/mainMenu')
-                })
+            let postInfo = httpClient.Post(sendUrl,this.user);
+            console.log("postInfo: ", postInfo);
+            postInfo.then((data) => {
+                if (data.response === true) {
+                    console.log("user find")
+                    storage.set("token",data.token.token);
+                    this.$router.push('/mainMenu');
+                } else {
+                    console.log("invalid username or password")
+                }
+            });
+
         },
     }
 })

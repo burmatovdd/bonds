@@ -34,7 +34,7 @@ func Authentication(token string) MiddlewareAuth {
 }
 func Middleware1() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println("i'm here")
+		fmt.Println("i'm in Middleware1")
 		clientToken := c.Request.Header.Get("Authorization")
 		if clientToken == "" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("No Authorization header provided")})

@@ -1,6 +1,9 @@
 <template>
   <div class="header">
-    <button class="openMenu" @click="openMenu">add bonds</button>
+    <div class="buttons">
+        <button class="openMenu" @click="openMenu">add bonds</button>
+        <button class="openMenu exit" @click="exit">exit</button>
+    </div>
   </div>
   <div class="menu" :class="{overlay: !isActive}">
     <div class="menuContainer">
@@ -13,6 +16,8 @@
 
 <script>
 import Overlay from "../overlay/overlay.vue";
+import *as storage from "../../storage";
+
 export default{
   name: "header",
   components: {
@@ -26,7 +31,11 @@ export default{
   methods: {
     openMenu: function() {
       this.isActive = !this.isActive;
-    }
+    },
+      exit: function () {
+        storage.remove("token");
+          this.$router.push('/');
+      }
   }
 }
 

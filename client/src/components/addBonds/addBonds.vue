@@ -12,6 +12,7 @@
 import { defineComponent } from 'vue';
 import *as storage from "../../storage";
 import { useRouter, useRoute } from 'vue-router'
+import *as httpClient from "../../httpClient";
 
 
 export default defineComponent({
@@ -32,14 +33,8 @@ export default defineComponent({
 
       let sendUrl = "http://localhost:8080/bonds";
 
-      await fetch(sendUrl, {
-        method: 'POST',
-        headers: {
-            'Authorization': token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bonds)
-      })
+      let postInfo = httpClient.PostWithoutReturn(sendUrl,bonds,token);
+
     }
     return {
       bonds,

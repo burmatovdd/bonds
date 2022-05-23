@@ -3,10 +3,10 @@
 		<div class="title">Enter Year</div>
 		<input id="input" type="number" class="input" ref="yearInput" />
 		<button id="button" class="button" @click="send">Submit</button>
-		<div class="table-responsive">
+		<div  :class="{overlay: !active}">
 			<table class="bondsTable">
 				<caption align="bottom">
-					ИТОГО:
+					Total:
 					{{
 						total
 					}}
@@ -85,12 +85,14 @@
 <script>
 import { defineComponent, ref } from "vue";
 import *as storage from "../../storage";
+import *as httpClient from "../../httpClient";
+import {useRouter} from "vue-router";
+
 
 
 export default defineComponent({
 	setup() {
 		const yearInput = ref();
-
 		return {
 			yearInput,
 		};
@@ -104,6 +106,7 @@ export default defineComponent({
                     months: [],
                 },
 			},
+            active: false
 		};
 	},
 	computed: {
@@ -136,10 +139,23 @@ export default defineComponent({
 			}, 0);
             return total.toFixed(2);
 		},
-		async _delete(bond, url = "http://localhost:8080/delete") {
+		async _delete(bond) {
+
             this.$data.response.allInfos.bondInfos = this.$data.response.allInfos.bondInfos.filter((bondObj) => bondObj.name !== bond.name);
 
-			// await fetch(url, {
+            // console.log("bondName: ", bond.name)
+
+            // let sendUrl = "http://localhost:8080/delete";
+            //
+            // let token = storage.get("token");
+            // if (token == null){
+            //     this.$router.push('/mainMenu');
+            // }
+            //
+            // let postInfo = httpClient.PostWithoutReturn(sendUrl,bonds,token);
+
+
+            // await fetch(url, {
 			// 	method: "POST",
 			// 	headers: {
 			// 		"Content-Type": "application/json",
@@ -149,6 +165,9 @@ export default defineComponent({
 		},
 
 		async send() {
+            if (this.active !== true){
+                this.active = !this.active;
+            }
             this.$data.months.length = 0; // Clear months array every time we click send button
             const year = this.$refs.yearInput.value;
 
@@ -156,30 +175,17 @@ export default defineComponent({
                 this.$data.months.push(`${year}-${i <= 9 ? `0${i}` : i}`);
             }
             let token = storage.get("token");
-             if (!token){
-                 this.$router.push("/");
-                 return Promise.resolve();
-             }
+            if (token == null){
+                this.$router.push('/mainMenu');
+            }
 
-			await fetch("http://localhost:8080/year", {
-				method: "POST",
-				headers: {
-                    'Authorization': token,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({year: this.$refs.yearInput.value}),
-			})
-				.then((response) => {
-					return response.json();
-				})
-				.then((data) => {
-					this.$data.response = data;
-                    console.log("data: ", data)
-                    console.log("this.$data.response: ", this.$data.response)
-                    console.log("this.$data.response.allInfos: ", this.$data.response.allInfos)
-                    console.log("this.$data.response.allInfos.bondinfos: ", this.$data.response.allInfos.bondInfos)
-				})
-				.catch(console.error);
+            let sendUrl = "http://localhost:8080/year";
+
+            let postInfo = httpClient.PostWithAuthorization(sendUrl,{year: this.$refs.yearInput.value}, token);
+            console.log("postInfo: ", postInfo);
+            postInfo.then((data) => {
+                this.$data.response = data;
+            })
 
 		},
 	},

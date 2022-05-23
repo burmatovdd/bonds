@@ -40,6 +40,8 @@
 <script>
 import {defineComponent} from 'vue';
 import {Form, Field, ErrorMessage} from 'vee-validate';
+import *as httpClient from "../../httpClient";
+import *as storage from "../../storage";
 
 let token = null;
 
@@ -119,26 +121,16 @@ export default defineComponent({
 
             let sendUrl = "http://localhost:8080/register";
 
-            await fetch(sendUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(this.userRegister)
-            })
-            .then((response) => {
-                return response.json();
-            })
-                .then((data) => {
-                    console.log("data: ",data);
-                    console.log("data.res: ",data.res);
-                    console.log("token: ",data.token);
-                    if (data.res === false) {
-                        console.log("user already exist!")
-                    }
-                    token = data.token.token;
+            let postInfo = httpClient.Post(sendUrl,this.userRegister);
+            console.log("postInfo: ", postInfo);
+            postInfo.then((data) => {
+                if (data.res === false) {
+                    console.log("user already exist!")
+                }
+                storage.set("token",data.token.token);
+                this.$router.push('/mainMenu');
+            });
 
-                })
         }
     }
 })

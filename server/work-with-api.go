@@ -98,7 +98,7 @@ func loginUser(c *gin.Context) {
 		userToken.Token, userToken.Refresh_token, _ = helper.GenerateAllTokens(res.Login, res.Name, res.User_type, res.User_id)
 		fmt.Println("login token: ", userToken.Token)
 	}
-
+	fmt.Println("result: ", result)
 	c.JSON(http.StatusOK, gin.H{
 		"response": result,
 		"token":    userToken,
@@ -149,11 +149,11 @@ func HandleRequest() {
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
 	router.POST("/login", loginUser)
+	router.POST("/register", register)
 	router.Use(middleware.Middleware1())
 	router.POST("/year", yearPost)
 	router.POST("/bonds", bondsPost)
 	router.POST("/delete", delete)
-	router.POST("/register", register)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)
