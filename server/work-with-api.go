@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"io/ioutil"
 	helper "modules/helpers"
 	"modules/middleware"
 	"net/http"
+	"os"
 	"strconv"
 )
 
 func yearPost(c *gin.Context) {
-	fmt.Println("start")
 	yearMap := make(map[string]string)
 
 	err := c.BindJSON(&yearMap)
@@ -25,8 +26,6 @@ func yearPost(c *gin.Context) {
 
 	res := findUserInDBById(id)
 	if res.User_id == id {
-		fmt.Println("user find! ")
-		fmt.Println("year: ", yearMap["year"])
 		test2 := TakeData(yearMap["year"], res.Bond)
 		c.JSON(http.StatusOK, struct {
 			AllInfos AllInfo `json:"allInfos"`
@@ -54,10 +53,8 @@ func bondsPost(c *gin.Context) {
 
 	res := findUserInDBById(id)
 	if res.User_id == id {
-		fmt.Println("user find! ")
 		count, _ := strconv.ParseFloat(bondsMap["count"], 64)
 
-		fmt.Println("array: ", res.Bond)
 		res.Bond = append(res.Bond, Bond{bondsMap["bond"], count})
 		addBondToUserInDB(id, res.Bond)
 	} else {
@@ -105,6 +102,10 @@ func loginUser(c *gin.Context) {
 	})
 }
 
+var redisClient = redis.NewClient(&redis.Options{
+	Addr: os.Getenv("REDIS_CONN"),
+})
+
 func register(c *gin.Context) {
 	var user User
 	var userToken UserToken
@@ -121,7 +122,7 @@ func register(c *gin.Context) {
 	login := registerMap["login"]
 	password := hashPassword(registerMap["password"])
 	user.ID = generateId()
-	user.User_type = "Admin"
+	user.User_type = "User"
 	user.User_id = user.ID.Hex()
 	userToken.Token, userToken.Refresh_token, _ = helper.GenerateAllTokens(login, name, user.User_type, user.User_id)
 
@@ -134,13 +135,25 @@ func register(c *gin.Context) {
 		user.User_type,
 		[]Bond{},
 	}
+
+	payload, err := json.Marshal(gin.H{
+		"message": userInfo.Login,
+	})
+
+	if err != nil {
+		fmt.Println("err: ", err.Error())
+	}
+	fmt.Println("payload: ", string(payload))
+	if err := redisClient.Publish(ctx, "sendMail", payload).Err(); err != nil {
+		panic(err)
+	}
+
 	res := addUserToDB(userInfo)
 	c.JSON(http.StatusOK, gin.H{
 		"token": userToken,
 		"res":   res,
 	})
 }
-
 func HandleRequest() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -148,12 +161,12 @@ func HandleRequest() {
 		AllowMethods: []string{"POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders: []string{"Content-Type,access-control-allow-origin, access-control-allow-headers, Authorization"},
 	}))
-	router.POST("/login", loginUser)
-	router.POST("/register", register)
+	router.POST("/api/login", loginUser)
+	router.POST("/api/register", register)
 	router.Use(middleware.Middleware1())
-	router.POST("/year", yearPost)
-	router.POST("/bonds", bondsPost)
-	router.POST("/delete", delete)
+	router.POST("/api/year", yearPost)
+	router.POST("/api/bonds", bondsPost)
+	router.POST("/api/delete", delete)
 	err := router.Run(":8080")
 	if err != nil {
 		fmt.Println("err: ", err)

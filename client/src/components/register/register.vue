@@ -60,14 +60,12 @@ export default defineComponent({
         }
         return {
             userRegister,
-            token
+            token,
         }
     },
     methods: {
         onSubmit(values) {
             console.log("onSubmit: ", values);
-
-
         },
         validateName(value) {
             if (!value) {
@@ -118,16 +116,17 @@ export default defineComponent({
         },
         async register() {
             console.log("register: ", this.userRegister)
-
-            let sendUrl = "http://localhost:8080/register";
+            // вынести в отдельную функцию, then.this.$router.push('/mainMenu');
+            let sendUrl = "/api/register";
 
             let postInfo = httpClient.Post(sendUrl,this.userRegister);
             console.log("postInfo: ", postInfo);
-            postInfo.then((data) => {
+            postInfo.then(async (data) => {
                 if (data.res === false) {
                     console.log("user already exist!")
+                    return 0;
                 }
-                storage.set("token",data.token.token);
+                storage.set("token", data.token.token);
                 this.$router.push('/mainMenu');
             });
 

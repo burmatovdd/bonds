@@ -8,19 +8,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
-	"os"
 )
 
 var collection *mongo.Collection
 var ctx = context.TODO()
 
 func init() {
-	value := os.Getenv("MONGODB_CONNSTRING")
-	if value == "" {
-		value = "mongodb://localhost:27017"
+	config, err := LoadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
 	}
+	//value := viper.Get("MONGODB_CONNSTRING")
+	//if value == "" {
+	//	value = "mongodb://localhost:27017"
+	//}
 	// из docker-compose.yml  подставляем переменную
-	clientOptions := options.Client().ApplyURI(value)
+	clientOptions := options.Client().ApplyURI(config.MONGOCONN) // problem?
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -41,49 +44,40 @@ func addBondToUserInDB(id string, bondInfo []Bond) {
 	if result.Login != "" {
 		fmt.Println("result: ", result)
 		for i := 0; i < len(bondInfo); i++ {
+			//var res struct {
+			//	name  string
+			//	count int
+			//}
+			//err := collection.FindOne(
+			//	ctx,
+			//	bson.D{
+			//		{"bond", bson.D{
+			//			{"name", "RU000A1049P5"},
+			//		}},
+			//	}).Decode(&res)
+			//fmt.Println("err:", err)
 			user.Bond = append(user.Bond, Bond{bondInfo[i].Name, bondInfo[i].Count})
+
 		}
-		//result.Bond = append(result.Bond, Bond{bondInfo, bondInfo.Count})
-		update := bson.D{
-			{"$set", bson.D{
-				{
-					"bond", user.Bond,
-				},
+	}
+	//result.Bond = append(result.Bond, Bond{bondInfo, bondInfo.Count})
+	update := bson.D{
+		{"$set", bson.D{
+			{
+				"bond", user.Bond,
 			},
-			},
-		}
-		filter := bson.D{{"name", result.Name}}
-		_, err := collection.UpdateOne(context.TODO(), filter, update)
-		if err != nil {
-			fmt.Println("update err: ", err)
-		}
+		},
+		},
+	}
+	filter := bson.D{{"name", result.Name}}
+	_, err := collection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		fmt.Println("update err: ", err)
 	}
 }
 
-func addBondToDB(bondInfo Bond) {
-	res := getBond(bondInfo.Name)
-	if res.Name != bondInfo.Name {
-		fmt.Println("ready to insert bond")
-		_, err := collection.InsertOne(ctx, bondInfo)
-		if err != nil {
-			fmt.Println(err)
-		}
-	} else {
-		if res.Count != bondInfo.Count {
-			// update count
-			update := bson.D{
-				{"$set", bson.D{
-					{"count", bondInfo.Count},
-				},
-				},
-			}
-			filter := bson.D{{"name", res.Name}}
-			_, err := collection.UpdateOne(context.TODO(), filter, update)
-			if err != nil {
-				fmt.Println("update err: ", err)
-			}
-		}
-	}
+func updateBond(id string, bondInfo []Bond) {
+	fmt.Println("Hello! i'm updateBond")
 }
 
 func addUserToDB(user User) bool {
@@ -137,79 +131,23 @@ func findUserInDB(login string) User {
 	return result
 }
 
-func getAllUsers() []User {
-	findOptions := options.Find()
-	var results []User
-
-	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
-
-	for cur.Next(context.TODO()) {
-		var elem User
-		err := cur.Decode(&elem)
-		results = append(results, elem)
-		if err != nil {
-			fmt.Println("cur.Next err: ", err)
-		}
-
-	}
-
-	if err = cur.Err(); err != nil {
-		fmt.Println("cur.Err: ", err)
-	}
-
-	// Close the cursor once finished
-	cur.Close(context.TODO())
-	return results
-}
-
-func getBond(name string) Bond {
-	var result Bond
-
-	filter := bson.D{{"name", name}}
-
-	err := collection.FindOne(context.TODO(), filter).Decode(&result)
-	if err != nil {
-	}
-	return result
-}
-
-func getAllBonds() []Bond {
-	findOptions := options.Find()
-	results := []Bond{}
-
-	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
-
-	for cur.Next(context.TODO()) {
-		var elem Bond
-		err := cur.Decode(&elem)
-		results = append(results, elem)
-		if err != nil {
-			fmt.Println("cur.Next err: ", err)
-		}
-
-	}
-
-	if err = cur.Err(); err != nil {
-		fmt.Println("cur.Err: ", err)
-	}
-
-	// Close the cursor once finished
-	cur.Close(context.TODO())
-	fmt.Println(results)
-	return results
-}
-
 func deleteBond(name string) {
-	_, err := collection.DeleteOne(ctx, bson.M{"name": name})
-	if err != nil {
-		fmt.Println("err: ", err)
+	update := bson.D{
+		{"$pull", bson.D{
+			{
+				"bond", bson.D{
+					{
+						"name", name,
+					},
+				},
+			},
+		},
+		},
 	}
-	//deleteAllBonds()
-}
 
-func deleteAllBonds() {
-	_, err := collection.DeleteMany(context.TODO(), bson.D{{}})
+	_, err := collection.UpdateMany(ctx, bson.D{}, update)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("err: ", err.Error())
 	}
+
 }

@@ -111,11 +111,12 @@ export default defineComponent({
         login: async function () {
             console.log("login: ", this.user)
 
-            let sendUrl = "http://localhost:8080/login";
+            let sendUrl = "/api/login";
 
             let postInfo = httpClient.Post(sendUrl,this.user);
             console.log("postInfo: ", postInfo);
             postInfo.then((data) => {
+                console.log("data: ", data);
                 if (data.response === true) {
                     console.log("user find")
                     storage.set("token",data.token.token);

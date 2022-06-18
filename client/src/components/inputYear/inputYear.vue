@@ -140,28 +140,12 @@ export default defineComponent({
             return total.toFixed(2);
 		},
 		async _delete(bond) {
-
-            this.$data.response.allInfos.bondInfos = this.$data.response.allInfos.bondInfos.filter((bondObj) => bondObj.name !== bond.name);
-
+            this.$data.response.allInfos.bondInfos = this.$data.response.allInfos.bondInfos.filter((bondObj) => bondObj.bond.name !== bond.bond.name);
             // console.log("bondName: ", bond.name)
 
-            // let sendUrl = "http://localhost:8080/delete";
-            //
-            // let token = storage.get("token");
-            // if (token == null){
-            //     this.$router.push('/mainMenu');
-            // }
-            //
-            // let postInfo = httpClient.PostWithoutReturn(sendUrl,bonds,token);
+            let sendUrl = "/api/delete";
 
-
-            // await fetch(url, {
-			// 	method: "POST",
-			// 	headers: {
-			// 		"Content-Type": "application/json",
-			// 	},
-			// 	body: JSON.stringify(bond.name),
-			// });
+            let postInfo = httpClient.Post(sendUrl,{name: bond.bond.name});
 		},
 
 		async send() {
@@ -176,12 +160,12 @@ export default defineComponent({
             }
             let token = storage.get("token");
             if (token == null){
-                this.$router.push('/mainMenu');
+                await this.$router.push('/');
             }
 
-            let sendUrl = "http://localhost:8080/year";
+            let sendUrl = "/api/year";
 
-            let postInfo = httpClient.PostWithAuthorization(sendUrl,{year: this.$refs.yearInput.value}, token);
+            let postInfo = httpClient.Post(sendUrl,{year: this.$refs.yearInput.value});
             console.log("postInfo: ", postInfo);
             postInfo.then((data) => {
                 this.$data.response = data;

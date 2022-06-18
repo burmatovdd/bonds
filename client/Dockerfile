@@ -10,7 +10,7 @@ FROM nginx:stable-alpine as production-stage
 WORKDIR /app
 COPY --from=build-stage-front /app/dist /usr/share/nginx/html
 COPY client/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY client/nginx/default.conf /etc/nginx/conf.d/default.tmpl.conf
+COPY client/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

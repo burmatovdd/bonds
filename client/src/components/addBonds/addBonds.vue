@@ -31,9 +31,9 @@ export default defineComponent({
       bonds.bond = document.getElementById("inputBond").value;
       bonds.count = document.getElementById("inputBondCount").value;
 
-      let sendUrl = "http://localhost:8080/bonds";
+      let sendUrl = "/api/bonds";
 
-      let postInfo = httpClient.PostWithoutReturn(sendUrl,bonds,token);
+      let postInfo = httpClient.Post(sendUrl,bonds,token);
 
     }
     return {
