@@ -4,7 +4,7 @@ WORKDIR /bonds
 
 RUN go version
 
-COPY server ./
+COPY cmd/server ./
 
 RUN ls -la
 RUN pwd

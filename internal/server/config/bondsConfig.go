@@ -1,4 +1,4 @@
-package main
+package bondsConfig
 
 import (
 	"fmt"
@@ -9,7 +9,15 @@ type Config struct {
 	MONGOCONN string `mapstructure:"MONGODB_CONNSTRING"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
+type BondsConfigService struct {
+	method *BondsConfig
+}
+
+type BondsConfig interface {
+	LoadConfig(path string) (config Config, err error)
+}
+
+func (service *BondsConfigService) LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()

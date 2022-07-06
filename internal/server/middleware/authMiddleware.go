@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	helper "modules/helpers"
+	helper "modules/internal/server/helpers"
 	"net/http"
 )
 

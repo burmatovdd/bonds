@@ -1,4 +1,4 @@
-package main
+package mongo
 
 import (
 	"context"
@@ -8,13 +8,30 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	bondsConfig "modules/internal/server/config"
+	"modules/internal/server/structs"
 )
 
 var collection *mongo.Collection
 var ctx = context.TODO()
 
+type MongoService struct {
+	method MongoMethods
+}
+
+type MongoMethods interface {
+	AddBondToUserInDB(id string, bondInfo []structs.Bond)
+	UpdateBond(id string, bondInfo []structs.Bond)
+	AddUserToDB(user structs.User) bool
+	GenerateId() primitive.ObjectID
+	DeleteBond(name string)
+	FindUserInDBById(id string) structs.User
+	FindUserInDB(login string) structs.User
+}
+
 func init() {
-	config, err := LoadConfig(".")
+	service := bondsConfig.BondsConfigService{}
+	config, err := service.LoadConfig("../../configs/server")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
@@ -38,9 +55,9 @@ func init() {
 
 }
 
-func addBondToUserInDB(id string, bondInfo []Bond) {
-	var user User
-	result := findUserInDBById(id)
+func (service *MongoService) AddBondToUserInDB(id string, bondInfo []structs.Bond) {
+	var user structs.User
+	result := service.method.FindUserInDBById(id)
 	if result.Login != "" {
 		fmt.Println("result: ", result)
 		for i := 0; i < len(bondInfo); i++ {
@@ -56,7 +73,7 @@ func addBondToUserInDB(id string, bondInfo []Bond) {
 			//		}},
 			//	}).Decode(&res)
 			//fmt.Println("err:", err)
-			user.Bond = append(user.Bond, Bond{bondInfo[i].Name, bondInfo[i].Count})
+			user.Bonds = append(user.Bonds, structs.Bond{Name: bondInfo[i].Name})
 
 		}
 	}
@@ -64,7 +81,7 @@ func addBondToUserInDB(id string, bondInfo []Bond) {
 	update := bson.D{
 		{"$set", bson.D{
 			{
-				"bond", user.Bond,
+				"bond", user.Bonds,
 			},
 		},
 		},
@@ -76,12 +93,12 @@ func addBondToUserInDB(id string, bondInfo []Bond) {
 	}
 }
 
-func updateBond(id string, bondInfo []Bond) {
+func (service *MongoService) UpdateBond(id string, bondInfo []structs.Bond) {
 	fmt.Println("Hello! i'm updateBond")
 }
 
-func addUserToDB(user User) bool {
-	res := findUserInDB(user.Login)
+func (service *MongoService) AddUserToDB(user structs.User) bool {
+	res := service.FindUserInDB(user.Login)
 	if res.Login != user.Login {
 		_, err := collection.InsertOne(context.TODO(), user)
 		if err != nil {
@@ -94,10 +111,10 @@ func addUserToDB(user User) bool {
 	}
 }
 
-func generateId() primitive.ObjectID {
+func (service *MongoService) GenerateId() primitive.ObjectID {
 	id := primitive.NewObjectID()
 	var filter bson.D
-	var result User
+	var result structs.User
 	filter = bson.D{{"id", id}}
 	err := collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
@@ -109,8 +126,8 @@ func generateId() primitive.ObjectID {
 	}
 }
 
-func findUserInDBById(id string) User {
-	var result User
+func (service *MongoService) FindUserInDBById(id string) structs.User {
+	var result structs.User
 	var filter bson.D
 	filter = bson.D{{"user_id", id}}
 	err := collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -121,17 +138,7 @@ func findUserInDBById(id string) User {
 
 }
 
-func findUserInDB(login string) User {
-	var result User
-	var filter bson.D
-	filter = bson.D{{"login", login}}
-	err := collection.FindOne(context.TODO(), filter).Decode(&result)
-	if err != nil {
-	}
-	return result
-}
-
-func deleteBond(name string) {
+func (service *MongoService) DeleteBond(name string) {
 	update := bson.D{
 		{"$pull", bson.D{
 			{
@@ -150,4 +157,21 @@ func deleteBond(name string) {
 		fmt.Println("err: ", err.Error())
 	}
 
+}
+
+func (service *MongoService) FindUserInDB(login string) structs.User {
+	fmt.Println("in findUser")
+	var result structs.User
+	var filter bson.D
+	filter = bson.D{{"login", login}}
+	fmt.Println("after filter")
+	fmt.Println(filter)
+	fmt.Println(context.TODO())
+	err := collection.FindOne(context.TODO(), filter).Decode(&result)
+	fmt.Println("after error")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println("esli tut to jopa")
+	return result
 }
