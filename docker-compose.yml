@@ -24,7 +24,7 @@ services:
             - redis
             - mongodb
         container_name: back
-        image: burmatovdd/bonds-server:0.2.0_amd64
+        image: burmatovdd/bonds-server:0.2.2_amd64
 #        ports:
 #            - 1234:8080
         environment:
