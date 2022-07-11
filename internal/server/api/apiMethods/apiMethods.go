@@ -35,20 +35,22 @@ func (method *ApiMethodsService) YearPost(c *gin.Context) {
 
 	err := c.BindJSON(&yearMap)
 	if err != nil {
-		fmt.Println("err: ", err)
+		fmt.Println("YearPost: err: ", err)
 	}
 
 	id := c.GetString("uid")
 
 	res := service.FindUserInDBById(id)
 	if res.User_id == id {
-		fmt.Println("GetBonds")
-		test2 := provider.GetBondsForYear(yearMap["year"], res.Bonds)
+		fmt.Println("YearPost: res: ", res)
+		response := provider.GetBondsForYear(yearMap["year"], res.Bonds)
+		fmt.Println("YearPost: response: ", response)
 		c.JSON(http.StatusOK, struct {
-			Bonds []structs.Bond `json:"bonds"`
+			Bonds []structs.UserBonds `json:"bonds"`
 		}{
-			test2,
+			response,
 		})
+		fmt.Println()
 	} else {
 		fmt.Println("need to login")
 	}
@@ -62,17 +64,17 @@ func (method *ApiMethodsService) BondsPost(c *gin.Context) {
 		fmt.Println("err: ", err)
 	}
 
-	bondsMap := make(map[string]string)
-	err = json.Unmarshal(jsonData, &bondsMap)
+	bond := structs.UserBonds{}
+	err = json.Unmarshal(jsonData, &bond)
 	if err != nil {
 		fmt.Println("err: ", err)
 	}
+	fmt.Println("BondsPost: bond: ", bond)
 	id := c.GetString("uid")
 
 	res := service.FindUserInDBById(id)
 	if res.User_id == id {
-		res.Bonds = append(res.Bonds, structs.Bond{Name: bondsMap["bond"]})
-		service.AddBondToUserInDB(id, res.Bonds)
+		service.AddBondToUserInDB(id, bond)
 	} else {
 		fmt.Println("need to login")
 	}
@@ -154,7 +156,7 @@ func (method *ApiMethodsService) Register(c *gin.Context) {
 		Login:     login,
 		User_id:   user.User_id,
 		User_type: user.User_type,
-		Bonds:     []structs.Bond{},
+		Bonds:     []structs.UserBonds{},
 	}
 
 	payload, err := json.Marshal(gin.H{

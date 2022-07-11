@@ -54,19 +54,21 @@ func (provider *MoexBondInfoProvider) GetBond(ticker string) structs.Bond {
 // GetBondsForYear bonds - массив бондов( тикер, кол-во),
 //bondsInfos - массив структуры Bond,
 //info - данные которые получаем по конкретному тикеру
-func (provider *MoexBondInfoProvider) GetBondsForYear(year string, bonds []structs.Bond) []structs.Bond {
+func (provider *MoexBondInfoProvider) GetBondsForYear(year string, bonds []structs.UserBonds) []structs.UserBonds {
+	fmt.Println("GetBondsForYear: year: ", year)
+	fmt.Println("GetBondsForYear: bonds: ", bonds)
 	service := bondsInfoMethods.BondsInfoMethodsService{}
 	for i := 0; i < len(bonds); i++ {
-		info := provider.GetBond(bonds[i].Name)
+		info := provider.GetBond(bonds[i].Bond.Name)
 
 		for j := 0; j < len(info.Coupons); j++ {
 			date := info.Coupons[j].Date[:4]
 			month := info.Coupons[j].Date[5:7]
 			if service.Check(year, date, month) {
-				bonds[i].Coupons = append(bonds[i].Coupons, info.Coupons[j])
+				bonds[i].Bond.Coupons = append(bonds[i].Bond.Coupons, info.Coupons[j])
 			}
 		}
-
+		fmt.Println("GetBondsForYear: bonds: ", bonds)
 	}
 	return bonds
 }

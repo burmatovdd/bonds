@@ -21,12 +21,17 @@ type UserToken struct {
 	Refresh_token string `json:"refresh_token"`
 }
 
+type UserBonds struct {
+	Bond  Bond `json:"bond"`
+	Count int  `json:"count"`
+}
+
 type User struct {
 	ID        primitive.ObjectID `bson:"_id"`
 	Name      string             `json:"name" validate:"required,min=2,max=100"`
-	Password  string             `json:"password" validate:"required,min=8""`
+	Password  string             `json:"password" validate:"required,min=8"`
 	Login     string             `json:"login" validate:"required, min=5"`
 	User_id   string             `json:"user_id"`
-	User_type string             `json:"user_type" validate:"required,eq=ADMIN|eq=USER""`
-	Bonds     []Bond             `json:"bonds"`
+	User_type string             `json:"user_type" validate:"required,eq=ADMIN|eq=USER"`
+	Bonds     []UserBonds        `json:"bonds"`
 }

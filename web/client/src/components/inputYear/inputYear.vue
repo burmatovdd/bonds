@@ -31,7 +31,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr :key="item.name" id="bonds" v-for="item in response.allInfos.bondInfos" class="bondsTr">
+					<tr :key="item.name" id="bonds" v-for="item in response.bonds" class="bondsTr">
 						<td>
 							{{ item.bond.name }}
 						</td>
@@ -44,9 +44,9 @@
 									<template v-for="month in months">
 										<td
 											:key="`${month}-if`"
-											v-if="item.coupons.find((coupon) => month === coupon.date)"
+											v-if="item.bond.coupons.find((coupon) => month === coupon.date)"
 										>
-											{{ item.coupons.find((coupon) => month === coupon.date).value }}
+											{{ item.bond.coupons.find((coupon) => month === coupon.date).value }}
 										</td>
 
 										<td :key="`${month}-else`" v-else></td>
@@ -101,10 +101,7 @@ export default defineComponent({
 		return {
 			months: [],
 			response: {
-                allInfos: {
-                    bondInfos: [],
-                    months: [],
-                },
+                bonds: []
 			},
             active: false
 		};
@@ -112,10 +109,10 @@ export default defineComponent({
 	computed: {
 		total() {
 			if (this.$data.response) {
-				const total = this.$data.response.allInfos.bondInfos.reduce((accumulator, bond) => {
+				const total = this.$data.response.bonds.reduce((accumulator, item) => {
 					return (
 						accumulator +
-						bond.coupons.reduce((accumulator, coupon) => {
+						item.bond.coupons.reduce((accumulator, coupon) => {
 							return accumulator + coupon.value;
 						}, 0)
 					);
@@ -129,10 +126,10 @@ export default defineComponent({
 	},
 	methods: {
 		monthTotal(month) {
-			const total = this.$data.response.allInfos.bondInfos.reduce((accumulator, bond) => {
+			const total = this.$data.response.bonds.reduce((accumulator, item) => {
 				return (
 					accumulator +
-					bond.coupons.reduce((accumulator, coupon) => {
+					item.bond.coupons.reduce((accumulator, coupon) => {
 						return coupon.date === month ? accumulator + coupon.value : accumulator;
 					}, 0)
 				);
@@ -140,7 +137,7 @@ export default defineComponent({
             return total.toFixed(2);
 		},
 		async _delete(bond) {
-            this.$data.response.allInfos.bondInfos = this.$data.response.allInfos.bondInfos.filter((bondObj) => bondObj.bond.name !== bond.bond.name);
+            this.$data.response.bonds = this.$data.response.bonds.filter((bondObj) => bondObj.bond.name !== bond.bond.name);
             // console.log("bondName: ", bond.name)
 
             let sendUrl = "/api/delete";
@@ -166,7 +163,6 @@ export default defineComponent({
             let sendUrl = "/api/year";
 
             let postInfo = httpClient.Post(sendUrl,{year: this.$refs.yearInput.value});
-            console.log("postInfo: ", postInfo);
             postInfo.then((data) => {
                 this.$data.response = data;
             })

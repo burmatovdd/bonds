@@ -29,16 +29,13 @@ type MongoMethods interface {
 	FindUserInDB(login string) structs.User
 }
 
+// init код запускается после подключения пакета
 func init() {
 	service := bondsConfig.BondsConfigService{}
-	config, err := service.LoadConfig("../../configs/server")
+	config, err := service.LoadConfig("configs/server")
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}
-	//value := viper.Get("MONGODB_CONNSTRING")
-	//if value == "" {
-	//	value = "mongodb://localhost:27017"
-	//}
 	// из docker-compose.yml  подставляем переменную
 	clientOptions := options.Client().ApplyURI(config.MONGOCONN) // problem?
 	client, err := mongo.Connect(ctx, clientOptions)
@@ -55,46 +52,33 @@ func init() {
 
 }
 
-func (service *MongoService) AddBondToUserInDB(id string, bondInfo []structs.Bond) {
-	var user structs.User
-	result := service.method.FindUserInDBById(id)
-	if result.Login != "" {
-		fmt.Println("result: ", result)
-		for i := 0; i < len(bondInfo); i++ {
-			//var res struct {
-			//	name  string
-			//	count int
-			//}
-			//err := collection.FindOne(
-			//	ctx,
-			//	bson.D{
-			//		{"bond", bson.D{
-			//			{"name", "RU000A1049P5"},
-			//		}},
-			//	}).Decode(&res)
-			//fmt.Println("err:", err)
-			user.Bonds = append(user.Bonds, structs.Bond{Name: bondInfo[i].Name})
-
+func find(bonds []structs.UserBonds, bond structs.UserBonds) (int, *structs.UserBonds) {
+	for i, item := range bonds {
+		if item.Bond.Name == bond.Bond.Name {
+			return i, &item
 		}
 	}
-	//result.Bond = append(result.Bond, Bond{bondInfo, bondInfo.Count})
-	update := bson.D{
-		{"$set", bson.D{
-			{
-				"bond", user.Bonds,
-			},
-		},
-		},
-	}
-	filter := bson.D{{"name", result.Name}}
-	_, err := collection.UpdateOne(context.TODO(), filter, update)
-	if err != nil {
-		fmt.Println("update err: ", err)
-	}
+	return -1, nil
 }
 
-func (service *MongoService) UpdateBond(id string, bondInfo []structs.Bond) {
-	fmt.Println("Hello! i'm updateBond")
+func (service *MongoService) AddBondToUserInDB(id string, bond structs.UserBonds) {
+	fmt.Println("bondInfo: ", bond)
+	result := service.FindUserInDBById(id)
+	index, existedBond := find(result.Bonds, bond)
+
+	if existedBond != nil {
+		result.Bonds[index].Count = bond.Count
+	} else {
+		result.Bonds = append(result.Bonds, structs.UserBonds{Bond: bond.Bond, Count: bond.Count})
+	}
+	_, err := collection.UpdateOne(ctx,
+		bson.M{"user_id": id},
+		bson.D{
+			{"$set", bson.D{{"bonds", result.Bonds}}},
+		})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func (service *MongoService) AddUserToDB(user structs.User) bool {

@@ -20,7 +20,9 @@ export default defineComponent({
   setup(){
       const router = useRouter();
     let bonds = {
-      bond: null,
+        bond: {
+            name: null,
+        },
       count: null,
     }
     let token = storage.get("token");
@@ -28,8 +30,8 @@ export default defineComponent({
         router.push("/");
     }
     async function sendBond() {
-      bonds.bond = document.getElementById("inputBond").value;
-      bonds.count = document.getElementById("inputBondCount").value;
+      bonds.bond.name = document.getElementById("inputBond").value;
+      bonds.count = +document.getElementById("inputBondCount").value;// + - int
 
       let sendUrl = "/api/bonds";
 
