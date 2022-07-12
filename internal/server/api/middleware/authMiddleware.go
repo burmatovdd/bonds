@@ -32,7 +32,7 @@ func Authentication(token string) MiddlewareAuth {
 	fmt.Println("middlewareAuth:", middlewareAuth)
 	return middlewareAuth
 }
-func Middleware1() gin.HandlerFunc {
+func Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientToken := c.Request.Header.Get("Authorization")
 		if clientToken == "" {

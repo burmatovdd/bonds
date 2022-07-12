@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"modules/internal/server/bondsInfo"
 	"modules/internal/server/bondsInfo/bondsInfoMethods"
-	"modules/internal/server/structs"
 	"net/http"
 	"strconv"
 )
@@ -26,10 +26,10 @@ type Row struct {
 type MoexBondInfoProvider struct {
 }
 
-func (provider *MoexBondInfoProvider) GetBond(ticker string) structs.Bond {
-	var bondInfo = structs.Bond{
+func (provider *MoexBondInfoProvider) GetBond(ticker string) bondsInfo.Bond {
+	var bondInfo = bondsInfo.Bond{
 		Name:    ticker,
-		Coupons: []structs.Coupon{},
+		Coupons: []bondsInfo.Coupon{},
 	}
 	response, err := http.Get("https://iss.moex.com/iss/statistics/engines/stock/markets/bonds/bondization/" + ticker + "?iss.meta=off&iss.only=coupons&coupons.columns=coupondate,value")
 	if err != nil {
@@ -42,7 +42,7 @@ func (provider *MoexBondInfoProvider) GetBond(ticker string) structs.Bond {
 
 		fullDate := (dict[idx]["date"])[:7]
 		value, _ := strconv.ParseFloat(dict[idx]["value"], 64)
-		var coupon = structs.Coupon{
+		var coupon = bondsInfo.Coupon{
 			Date:  fullDate,
 			Value: value,
 		}
@@ -54,9 +54,7 @@ func (provider *MoexBondInfoProvider) GetBond(ticker string) structs.Bond {
 // GetBondsForYear bonds - массив бондов( тикер, кол-во),
 //bondsInfos - массив структуры Bond,
 //info - данные которые получаем по конкретному тикеру
-func (provider *MoexBondInfoProvider) GetBondsForYear(year string, bonds []structs.UserBonds) []structs.UserBonds {
-	fmt.Println("GetBondsForYear: year: ", year)
-	fmt.Println("GetBondsForYear: bonds: ", bonds)
+func (provider *MoexBondInfoProvider) GetBondsForYear(year string, bonds []bondsInfo.UserBonds) []bondsInfo.UserBonds {
 	service := bondsInfoMethods.BondsInfoMethodsService{}
 	for i := 0; i < len(bonds); i++ {
 		info := provider.GetBond(bonds[i].Bond.Name)
@@ -68,7 +66,6 @@ func (provider *MoexBondInfoProvider) GetBondsForYear(year string, bonds []struc
 				bonds[i].Bond.Coupons = append(bonds[i].Bond.Coupons, info.Coupons[j])
 			}
 		}
-		fmt.Println("GetBondsForYear: bonds: ", bonds)
 	}
 	return bonds
 }

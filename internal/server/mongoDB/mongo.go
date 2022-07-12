@@ -8,8 +8,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
-	bondsConfig "modules/internal/server/config"
-	"modules/internal/server/structs"
+	bondsConfig "modules/configs/server"
+	"modules/internal/server/UserModel"
+	"modules/internal/server/bondsInfo"
 )
 
 var collection *mongo.Collection
@@ -20,13 +21,12 @@ type MongoService struct {
 }
 
 type MongoMethods interface {
-	AddBondToUserInDB(id string, bondInfo []structs.Bond)
-	UpdateBond(id string, bondInfo []structs.Bond)
-	AddUserToDB(user structs.User) bool
+	AddBondToUserInDB(id string, bondInfo []bondsInfo.Bond)
+	AddUserToDB(user UserModel.User) bool
 	GenerateId() primitive.ObjectID
 	DeleteBond(name string)
-	FindUserInDBById(id string) structs.User
-	FindUserInDB(login string) structs.User
+	FindUserInDBById(id string) UserModel.User
+	FindUserInDB(login string) UserModel.User
 }
 
 // init код запускается после подключения пакета
@@ -52,7 +52,7 @@ func init() {
 
 }
 
-func find(bonds []structs.UserBonds, bond structs.UserBonds) (int, *structs.UserBonds) {
+func find(bonds []bondsInfo.UserBonds, bond bondsInfo.UserBonds) (int, *bondsInfo.UserBonds) {
 	for i, item := range bonds {
 		if item.Bond.Name == bond.Bond.Name {
 			return i, &item
@@ -61,7 +61,7 @@ func find(bonds []structs.UserBonds, bond structs.UserBonds) (int, *structs.User
 	return -1, nil
 }
 
-func (service *MongoService) AddBondToUserInDB(id string, bond structs.UserBonds) {
+func (service *MongoService) AddBondToUserInDB(id string, bond bondsInfo.UserBonds) {
 	fmt.Println("bondInfo: ", bond)
 	result := service.FindUserInDBById(id)
 	index, existedBond := find(result.Bonds, bond)
@@ -69,7 +69,7 @@ func (service *MongoService) AddBondToUserInDB(id string, bond structs.UserBonds
 	if existedBond != nil {
 		result.Bonds[index].Count = bond.Count
 	} else {
-		result.Bonds = append(result.Bonds, structs.UserBonds{Bond: bond.Bond, Count: bond.Count})
+		result.Bonds = append(result.Bonds, bondsInfo.UserBonds{Bond: bond.Bond, Count: bond.Count})
 	}
 	_, err := collection.UpdateOne(ctx,
 		bson.M{"user_id": id},
@@ -81,7 +81,7 @@ func (service *MongoService) AddBondToUserInDB(id string, bond structs.UserBonds
 	}
 }
 
-func (service *MongoService) AddUserToDB(user structs.User) bool {
+func (service *MongoService) AddUserToDB(user UserModel.User) bool {
 	res := service.FindUserInDB(user.Login)
 	if res.Login != user.Login {
 		_, err := collection.InsertOne(context.TODO(), user)
@@ -98,7 +98,7 @@ func (service *MongoService) AddUserToDB(user structs.User) bool {
 func (service *MongoService) GenerateId() primitive.ObjectID {
 	id := primitive.NewObjectID()
 	var filter bson.D
-	var result structs.User
+	var result UserModel.User
 	filter = bson.D{{"id", id}}
 	err := collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
@@ -110,8 +110,8 @@ func (service *MongoService) GenerateId() primitive.ObjectID {
 	}
 }
 
-func (service *MongoService) FindUserInDBById(id string) structs.User {
-	var result structs.User
+func (service *MongoService) FindUserInDBById(id string) UserModel.User {
+	var result UserModel.User
 	var filter bson.D
 	filter = bson.D{{"user_id", id}}
 	err := collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -124,38 +124,26 @@ func (service *MongoService) FindUserInDBById(id string) structs.User {
 
 func (service *MongoService) DeleteBond(name string) {
 	update := bson.D{
-		{"$pull", bson.D{
-			{
-				"bond", bson.D{
-					{
-						"name", name,
-					},
-				},
-			},
-		},
-		},
+		{"$pull", bson.D{{"bonds", bson.D{{"bond.name", name}}}}},
 	}
 
-	_, err := collection.UpdateMany(ctx, bson.D{}, update)
+	//_, err := collection.UpdateMany(ctx, bson.D{}, update)
+	_, err := collection.UpdateOne(ctx, bson.D{}, update)
 	if err != nil {
 		fmt.Println("err: ", err.Error())
 	}
 
 }
 
-func (service *MongoService) FindUserInDB(login string) structs.User {
-	fmt.Println("in findUser")
-	var result structs.User
+func (service *MongoService) FindUserInDB(login string) UserModel.User {
+	var result UserModel.User
 	var filter bson.D
 	filter = bson.D{{"login", login}}
-	fmt.Println("after filter")
 	fmt.Println(filter)
 	fmt.Println(context.TODO())
 	err := collection.FindOne(context.TODO(), filter).Decode(&result)
-	fmt.Println("after error")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println("esli tut to jopa")
 	return result
 }

@@ -1,4 +1,4 @@
-package bondsConfig
+package server
 
 import (
 	"fmt"

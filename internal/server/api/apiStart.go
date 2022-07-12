@@ -5,7 +5,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	apiMethods "modules/internal/server/api/apiMethods"
-	"modules/internal/server/middleware"
+	"modules/internal/server/api/middleware"
 )
 
 type ApiStartService struct {
@@ -26,7 +26,7 @@ func (method *ApiStartService) HandleRequest() {
 	}))
 	router.POST("/api/login", service.Login)
 	router.POST("/api/register", service.Register)
-	router.Use(middleware.Middleware1())
+	router.Use(middleware.Middleware())
 	router.POST("/api/year", service.YearPost)
 	router.POST("/api/bonds", service.BondsPost)
 	router.POST("/api/delete", service.Delete)
